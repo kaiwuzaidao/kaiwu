@@ -31,7 +31,7 @@ Kaiwu 开源统一入口
   ./kaiwu up [--no-build]        初始化并启动完整平台
   ./kaiwu dev                    基础设施留在 Docker，应用以本机进程运行
   ./kaiwu status                 查看容器状态
-  ./kaiwu logs                   跟踪应用日志
+  ./kaiwu logs [-f|--tail N]     查看应用日志；默认打印最近 200 行后退出，-f 跟随
   ./kaiwu credentials            查看首次登录信息
   ./kaiwu context-public-key     输出业务后端本地联调所需 Context 公钥
   ./kaiwu import-project-menu <sql>  导入受审查的生成项目菜单
@@ -239,7 +239,12 @@ case "$command_name" in
     ensure_system_repository
     delegate deploy-init
     ;;
-  dev|local-status|local-logs|local-down|status|logs|credentials|down|reset|context-public-key|reload-routes)
+  logs|local-logs)
+    # 唯一接受参数的查看类命令：默认打印最近日志后退出，要跟随就 ./kaiwu logs -f。
+    # 其余参数原样透传给 docker compose logs（如 --tail 50、单个服务名）。
+    delegate "$command_name" "$@"
+    ;;
+  dev|local-status|local-down|status|credentials|down|reset|context-public-key|reload-routes)
     [[ $# -eq 0 ]] || { echo "${command_name} 不接受参数。" >&2; exit 2; }
     delegate "$command_name"
     ;;
