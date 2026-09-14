@@ -1,0 +1,6 @@
+# 入口仓只保存主页和初始化工具；五个产品仓是可重建工作副本。
+workspace/
+.DS_Store
+*.log
+.env
+.env.*

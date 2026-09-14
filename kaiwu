@@ -1,0 +1,258 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+entry_dir="$(cd "$(dirname "$0")" && pwd)"
+entry_config="${entry_dir}/kaiwu-entry.env"
+workspace_dir="${KAIWU_WORKSPACE_DIR:-${entry_dir}/workspace}"
+command_name="${1:-help}"
+shift || true
+
+if [[ ! -f "$entry_config" ]]; then
+  echo "缺少入口清单：${entry_config}" >&2
+  exit 1
+fi
+# shellcheck disable=SC1090 # 仓库内受控清单，只包含入口常量。
+source "$entry_config"
+if [[ "${KAIWU_ENTRY_SCHEMA:-}" != "1" ]]; then
+  echo "不支持的入口清单版本：${KAIWU_ENTRY_SCHEMA:-未设置}" >&2
+  exit 1
+fi
+
+system_dir="${workspace_dir}/${KAIWU_SYSTEM_REPOSITORY}"
+
+usage() {
+  cat <<'EOF'
+Kaiwu 开源统一入口
+
+用法：
+  ./kaiwu doctor                 检查第一次运行所需环境
+  ./kaiwu repositories           预览入口仓库来源与版本策略
+  ./kaiwu init [--with-deploy]   初始化运行工作区；可选同时获取 GitOps 仓
+  ./kaiwu up [--no-build]        初始化并启动完整平台
+  ./kaiwu dev                    基础设施留在 Docker，应用以本机进程运行
+  ./kaiwu status                 查看容器状态
+  ./kaiwu logs                   跟踪应用日志
+  ./kaiwu credentials            查看首次登录信息
+  ./kaiwu context-public-key     输出业务后端本地联调所需 Context 公钥
+  ./kaiwu import-project-menu <sql>  导入受审查的生成项目菜单
+  ./kaiwu reload-routes          重新加载 Compose 受管业务路由
+  ./kaiwu local-status|local-logs|local-down  管理本机应用进程
+  ./kaiwu down                   停止平台并保留数据
+  ./kaiwu reset                  二次确认后删除本地平台数据
+  ./kaiwu deploy-init            到 Kubernetes 阶段再获取 kaiwu-deploy
+  ./kaiwu help                   显示帮助
+
+Fork / 自建 Git：
+  KAIWU_REPOSITORY_BASE_URL=https://github.com/kaiwuzaidao ./kaiwu up
+  KAIWU_REPOSITORY_REF=v0.1.0 ./kaiwu up
+EOF
+}
+
+require_tool() {
+  if ! command -v "$1" >/dev/null 2>&1; then
+    echo "缺少必需工具：$1" >&2
+    return 1
+  fi
+}
+
+validate_base_url() {
+  local base_url="$1"
+  case "$base_url" in
+    https://*|ssh://*|git@*:*) ;;
+    *)
+      echo "仓库来源只接受 HTTPS 或 SSH Git 地址：${base_url}" >&2
+      return 1
+      ;;
+  esac
+}
+
+base_url_from_origin() {
+  local repository_dir="$1" repository_name="$2" origin suffix
+  origin="$(git -C "$repository_dir" remote get-url origin 2>/dev/null || true)"
+  suffix="/${repository_name}.git"
+  if [[ "$origin" == *"$suffix" ]]; then
+    printf '%s' "${origin%"$suffix"}"
+    return
+  fi
+  suffix="/${repository_name}"
+  if [[ "$origin" == *"$suffix" ]]; then
+    printf '%s' "${origin%"$suffix"}"
+    return
+  fi
+  echo "无法从 ${repository_name} 的 origin 推导仓库组织地址。" >&2
+  return 1
+}
+
+repository_base_url() {
+  local base_url
+  if [[ -n "${KAIWU_REPOSITORY_BASE_URL:-}" ]]; then
+    base_url="${KAIWU_REPOSITORY_BASE_URL%/}"
+  elif [[ -d "${entry_dir}/.git" ]]; then
+    base_url="$(base_url_from_origin "$entry_dir" "kaiwu")"
+  elif [[ -d "${system_dir}/.git" ]]; then
+    base_url="$(base_url_from_origin "$system_dir" "$KAIWU_SYSTEM_REPOSITORY")"
+  else
+    echo "当前目录还不是 Git 仓库，无法推导公开组织地址。" >&2
+    echo "请设置 KAIWU_REPOSITORY_BASE_URL，或从 GitHub/GitLab clone 本入口后再执行。" >&2
+    return 1
+  fi
+  validate_base_url "$base_url" || return 1
+  printf '%s' "$base_url"
+}
+
+selected_ref() {
+  local exact_tag
+  if [[ -n "${KAIWU_REPOSITORY_REF:-}" ]]; then
+    printf '%s' "$KAIWU_REPOSITORY_REF"
+    return
+  fi
+  if [[ "${KAIWU_DEFAULT_REPOSITORY_REF:-auto}" == "auto" && -d "${entry_dir}/.git" ]]; then
+    exact_tag="$(git -C "$entry_dir" describe --tags --exact-match HEAD 2>/dev/null || true)"
+    printf '%s' "$exact_tag"
+    return
+  fi
+  if [[ "${KAIWU_DEFAULT_REPOSITORY_REF:-auto}" != "auto" ]]; then
+    printf '%s' "$KAIWU_DEFAULT_REPOSITORY_REF"
+  fi
+}
+
+system_repository_url() {
+  local base_url
+  base_url="$(repository_base_url)" || return 1
+  printf '%s/%s.git' "$base_url" "$KAIWU_SYSTEM_REPOSITORY"
+}
+
+ensure_system_repository() {
+  local repository_url repository_ref
+  if [[ -d "${system_dir}/.git" ]]; then
+    return
+  fi
+  if [[ -e "$system_dir" ]]; then
+    echo "工作区路径已存在但不是 Git 仓库：${system_dir}" >&2
+    exit 1
+  fi
+  require_tool git
+  repository_url="$(system_repository_url)" || return 1
+  repository_ref="$(selected_ref)"
+  mkdir -p "$workspace_dir"
+  echo "正在获取 Kaiwu 控制面入口${repository_ref:+（版本 ${repository_ref}）} ..."
+  if [[ -n "$repository_ref" ]]; then
+    git clone --depth 1 --branch "$repository_ref" "$repository_url" "$system_dir"
+  else
+    git clone --depth 1 "$repository_url" "$system_dir"
+  fi
+}
+
+delegate() {
+  local delegated_command="$1" base_url repository_ref
+  shift
+  if [[ ! -x "${system_dir}/scripts/kaiwu.sh" ]]; then
+    echo "运行工作区尚未初始化，请先执行：./kaiwu init 或 ./kaiwu up" >&2
+    exit 1
+  fi
+  base_url="$(repository_base_url)" || return 1
+  export KAIWU_REPOSITORY_BASE_URL="$base_url"
+  repository_ref="$(selected_ref)"
+  if [[ -n "$repository_ref" ]]; then
+    export KAIWU_REPOSITORY_REF="$repository_ref"
+  fi
+  # 让内层脚本的提示语自称 ./kaiwu：用户站在入口仓，照着 ./scripts/kaiwu.sh 敲会失败。
+  export KAIWU_CLI_NAME="./kaiwu"
+  exec "${system_dir}/scripts/kaiwu.sh" "$delegated_command" "$@"
+}
+
+doctor() {
+  local failures=0 tool
+  echo "Kaiwu 第一次运行环境检查"
+  for tool in git docker openssl curl; do
+    if require_tool "$tool" >/dev/null 2>&1; then
+      printf '  ✓ %-10s %s\n' "$tool" "$(command -v "$tool")"
+    else
+      printf '  ✗ 缺少 %s\n' "$tool"
+      failures=$((failures + 1))
+    fi
+  done
+  if command -v docker >/dev/null 2>&1; then
+    if docker compose version >/dev/null 2>&1; then
+      echo "  ✓ Docker Compose v2"
+    else
+      echo "  ✗ Docker Compose v2 不可用"
+      failures=$((failures + 1))
+    fi
+    if docker info >/dev/null 2>&1; then
+      echo "  ✓ Docker daemon 可连接"
+    else
+      echo "  ✗ Docker daemon 不可连接"
+      failures=$((failures + 1))
+    fi
+  fi
+  if (( failures > 0 )); then
+    echo "环境检查未通过：${failures} 项需要处理。" >&2
+    return 1
+  fi
+  echo "环境检查通过，可以执行：./kaiwu up"
+}
+
+show_repositories() {
+  local repository_ref repository_url
+  repository_url="$(system_repository_url)" || return 1
+  echo "统一入口：${entry_dir}"
+  echo "System 来源：${repository_url}"
+  repository_ref="$(selected_ref)"
+  if [[ -n "$repository_ref" ]]; then
+    echo "版本策略：入口与全部产品仓固定使用 ${repository_ref}"
+  else
+    echo "版本策略：开发态使用默认分支；入口位于 Release tag 时全部产品仓使用同名 tag"
+  fi
+  echo "其余运行仓与可选部署仓由 System 的版本化工作区清单决定。"
+}
+
+case "$command_name" in
+  doctor)
+    [[ $# -eq 0 ]] || { echo "doctor 不接受参数。" >&2; exit 2; }
+    doctor
+    ;;
+  repositories)
+    [[ $# -eq 0 ]] || { echo "repositories 不接受参数。" >&2; exit 2; }
+    require_tool git
+    show_repositories
+    ;;
+  init)
+    if [[ $# -gt 1 || ( $# -eq 1 && "${1:-}" != "--with-deploy" ) ]]; then
+      echo "init 只接受可选参数 --with-deploy。" >&2
+      exit 2
+    fi
+    ensure_system_repository
+    delegate init "$@"
+    ;;
+  up)
+    if [[ $# -gt 1 || ( $# -eq 1 && "${1:-}" != "--no-build" ) ]]; then
+      echo "up 只接受可选参数 --no-build。" >&2
+      exit 2
+    fi
+    doctor
+    ensure_system_repository
+    delegate up "$@"
+    ;;
+  deploy-init)
+    [[ $# -eq 0 ]] || { echo "deploy-init 不接受参数。" >&2; exit 2; }
+    ensure_system_repository
+    delegate deploy-init
+    ;;
+  dev|local-status|local-logs|local-down|status|logs|credentials|down|reset|context-public-key|reload-routes)
+    [[ $# -eq 0 ]] || { echo "${command_name} 不接受参数。" >&2; exit 2; }
+    delegate "$command_name"
+    ;;
+  import-project-menu)
+    [[ $# -eq 1 ]] || { echo "用法：./kaiwu import-project-menu <生成后端仓/sql/menu.sql>" >&2; exit 2; }
+    delegate import-project-menu "$1"
+    ;;
+  help|--help|-h)
+    usage
+    ;;
+  *)
+    echo "未知命令：${command_name}" >&2
+    usage
+    exit 2
+    ;;
+esac
