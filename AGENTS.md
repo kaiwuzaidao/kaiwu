@@ -14,8 +14,18 @@
 `./kaiwu up` 会从源码构建镜像，基础镜像全部来自公共仓库，不需要任何私有凭据。
 第一次构建需要拉 Maven 与 npm 依赖，耗时取决于网络。
 
-失败时先看 `./kaiwu doctor` 的输出，再看 `./kaiwu logs`；不要绕过脚本直接敲
-`docker compose`——端口、密钥与 Compose 文件的组合由脚本负责生成。
+失败时先看 `./kaiwu doctor` 的输出，再看 `./kaiwu logs`（默认打印最近 200 行后退出；
+要持续跟随才加 `-f`）；不要绕过脚本直接敲 `docker compose`——端口、密钥与 Compose
+文件的组合由脚本负责生成。
+
+同一台机器上已经跑着另一份 Kaiwu 时，**项目名和对外端口都要错开**，两者缺一不可：
+
+```bash
+COMPOSE_PROJECT_NAME=kaiwu-demo KAIWU_WEB_PORT=8100 KAIWU_GATEWAY_PORT=8188 ./kaiwu up
+```
+
+只改项目名会共用同一批数据卷——新生成的随机口令对不上旧卷里的库，MySQL 起不来；
+只改项目名不改端口，则卡在 `Bind for 127.0.0.1:8088 failed: port is already allocated`。
 
 ## 仓库长什么样
 
