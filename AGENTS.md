@@ -27,6 +27,41 @@ COMPOSE_PROJECT_NAME=kaiwu-demo KAIWU_WEB_PORT=8100 KAIWU_GATEWAY_PORT=8188 ./ka
 只改项目名会共用同一批数据卷——新生成的随机口令对不上旧卷里的库，MySQL 起不来；
 只改项目名不改端口，则卡在 `Bind for 127.0.0.1:8088 failed: port is already allocated`。
 
+## 生成并取回一个业务项目
+
+平台跑起来之后，生成业务项目不需要操作网页，按下面的顺序在命令行完成（ADR 0035）：
+
+```bash
+./kaiwu login --client "<你的工具名>" --local   # 本机平台：免点击；--local 不可用或失败时会打印 /device 链接，由用户核对后点「允许」
+./kaiwu project new order-center --name "订单中心"   # 生成前后端基础脚手架
+./kaiwu project status order-center --wait
+./kaiwu project pull order-center       # 解压到工作目录旁的 business/，两个仓各自完成 git 初始提交
+./kaiwu project-up ../business/order-center-service ../business/order-center-web
+```
+
+开发过程中需要平台配合的动作，都用命令完成，不要让用户去网页上点：
+
+```bash
+./kaiwu project sync ../business/order-center-service          # 先看计划：仓库里 kaiwu/*.yml 的菜单、字典、配置与平台的差异
+./kaiwu project sync ../business/order-center-service --apply  # 确认后写入（只新增、不删除）
+./kaiwu access permissions order-center                        # 项目里可授予的权限码
+./kaiwu access roles order-center                              # 角色
+./kaiwu access role-create order-center auditor --name "审计员"
+./kaiwu access role-grant order-center auditor --permissions order:order:list   # 整体替换，上级菜单自动补齐
+./kaiwu access members order-center                            # 成员
+./kaiwu access member-set order-center alice --roles auditor   # 添加或更新成员（--disabled 停用）
+```
+
+- 远程平台上的授权必须由用户本人在浏览器里确认；CLI 会话最长 7 天，可在安全运营中心强制下线。
+  会话的平台权限被收窄到「生成并取回项目、同步清单」，成员与角色授权则按用户在该项目里的权限判定。
+- `kaiwu/menus.yml`、`dicts.yml`、`configs.yml` 在业务后端仓里；新增接口权限码时同批补 `menus.yml`，再 `project sync`。
+  提交前运行业务仓里的 `bash scripts/verify.sh`。
+- `project new` 根据项目配置生成基础脚手架；取回后在业务仓中开发数据模型和业务功能。项目编码一经生成不可重复生成。
+- 取回的两个仓库自带各自的 `AGENTS.md`，后续开发在那两个仓里进行。推送到用户自己的 Git 服务前，
+  先确认远端仓库为空，不做 force push。
+- 修改 Docker、代理或系统配置，重启任何服务，或清理磁盘之前，先向用户说明影响并取得同意；
+  清理只限缓存和构建产物，不删除会话记录等用户数据。
+
 ## 仓库长什么样
 
 `./kaiwu up` 之后：
@@ -51,7 +86,8 @@ workspace/
 | --- | --- |
 | 十分钟搞懂它怎么运作 | `docs/HOW-IT-WORKS.md` |
 | 搞清楚五个仓各管什么 | `docs/REPOSITORIES.md` |
-| 本地开发与调试 | `workspace/kaiwu-system-service/docs/QUICKSTART.md` |
+| 第一次完整走一遍 | `workspace/kaiwu-system-service/docs/QUICKSTART.md` |
+| 本地开发与调试（挂断点、热重载、看日志） | `workspace/kaiwu-system-service/docs/LOCAL-DEVELOPMENT.md` |
 | 部署到一台服务器 | `workspace/kaiwu-system-service/docs/SERVER-DEPLOYMENT.md` |
 | 部署到 Kubernetes | `workspace/kaiwu-system-service/docs/KUBERNETES.md` |
 | 接自己已有的 MySQL / Redis | `workspace/kaiwu-system-service/docs/SERVER-DEPLOYMENT.md`（Compose）或 `docs/KUBERNETES.md`（Helm） |
@@ -78,7 +114,7 @@ workspace/
 
 ```bash
 KAIWU_REPOSITORY_BASE_URL=https://github.com/kaiwuzaidao ./kaiwu repositories
-KAIWU_REPOSITORY_REF=v0.1.0 ./kaiwu up
+KAIWU_REPOSITORY_REF=v0.2.0 ./kaiwu up
 ```
 
 正式发行时入口与五个产品仓使用**同名不可变 tag**。初始化时发现同名 tag 缺失必须

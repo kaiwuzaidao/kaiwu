@@ -8,15 +8,15 @@ Kaiwu 是面向多项目交付的通用后台开发平台。它把用户、项�
 审计、统一入口和确定性项目脚手架放在同一个治理面中，同时把每个业务项目交付为独立前后端
 仓库、独立数据库和独立部署边界。
 
-AI 不是使用 Kaiwu 的前提。你可以生成基础空脚手架，也可以让 AI 参与受约束的第一版业务蓝图；
-交付之后，继续使用团队熟悉的 IDE、Codex、Claude Code、Cursor 或其他 AI Coding 工具开发。
+项目工厂按项目配置，用版本化模板确定性生成前后端基础脚手架。取回独立仓库后，
+团队继续使用熟悉的 IDE、Codex、Claude Code、Cursor 或其他 AI 编码工具开发业务功能。
 
 ## 5 分钟开始
 
 只需要 Git、Docker Compose v2 和 OpenSSL：
 
 ```bash
-git clone <本仓库地址> kaiwu
+git clone https://github.com/kaiwuzaidao/kaiwu.git kaiwu
 cd kaiwu
 ./kaiwu doctor
 ./kaiwu up
@@ -39,12 +39,15 @@ cd kaiwu
 | 我想做什么 | 下一步 |
 | --- | --- |
 | 先体验平台 | `./kaiwu up`，然后按工作台引导创建基础项目 |
+| 跟着教程完整走一遍 | 读 `kaiwu-system-service` 仓的 `docs/QUICKSTART.md`：启动平台 → 创建第一个项目 → 取走两个仓库 → 在本机跑起来 |
 | 开发第一个业务项目 | 从项目工厂下载独立后端、前端 ZIP，用自己的开发工具继续 |
+| 在本机直接跑起生成的项目 | `./kaiwu project-up ../business/<项目编码>-service`，一条命令接入平台，从工作台进入 |
 | 部署到一台服务器 | 读 `kaiwu-system-service` 仓的 `docs/SERVER-DEPLOYMENT.md` |
 | 部署到 Kubernetes（Helm） | 读 `kaiwu-system-service` 仓的 `docs/KUBERNETES.md`，Chart 就在该仓 `deploy/helm/kaiwu` |
 | 部署到 Kubernetes（GitOps） | 执行 `./kaiwu deploy-init` 取得 `kaiwu-deploy`，再按上面的指南操作 |
 | 先弄懂它怎么运作 | 十分钟读完 [Kaiwu 是怎么运作的](docs/HOW-IT-WORKS.md) |
 | 用 AI 编码工具接手 | 读 [AGENTS.md](AGENTS.md)——Codex、Claude Code、Cursor、Trae 都从这里开始 |
+| 改平台自身的代码 | 读 `kaiwu-system-service` 仓的 `docs/LOCAL-DEVELOPMENT.md`：`./kaiwu dev` 混合模式、挂断点、只重启一个服务 |
 | 参与 Kaiwu 开发 | 阅读 [CONTRIBUTING.md](CONTRIBUTING.md) 和 [仓库地图](docs/REPOSITORIES.md) |
 
 > 表中 `kaiwu-system-service` 仓的文档，执行 `./kaiwu up` 或 `./kaiwu init` 之后会出现在
@@ -56,7 +59,7 @@ cd kaiwu
 flowchart LR
     User["开发者"] --> Entry["kaiwu 开源入口"]
     Entry --> Platform["Kaiwu 控制面"]
-    Platform --> Factory["项目工厂：AI 可选"]
+    Platform --> Factory["项目工厂：确定性基础脚手架"]
     Factory --> Backend["独立后端仓"]
     Factory --> Frontend["独立前端仓"]
     Backend --> Coding["团队自己的 IDE / AI Coding"]
@@ -78,7 +81,7 @@ Kaiwu 不在生成成功后持续覆盖业务源码。平台负责提供一致�
 - AI 生成物能跑但不能交付：缺少权限、迁移、日志、安全、CI 和部署契约。
 - 平台与业务代码纠缠：升级平台时担心覆盖业务，业务变化又反向拖住平台。
 
-Kaiwu 用“薄平台、独立业务仓、受约束蓝图、确定性模板、可执行工程门禁”回应这些问题。
+Kaiwu 通过薄平台、独立业务仓、确定性模板和可执行工程门禁提供统一的项目起点。
 
 ![项目工厂](docs/assets/project-factory.png)
 
@@ -123,7 +126,7 @@ workspace/
 
 ```bash
 export KAIWU_REPOSITORY_BASE_URL='https://github.com/kaiwuzaidao'
-export KAIWU_REPOSITORY_REF='v0.1.0'
+export KAIWU_REPOSITORY_REF='v0.2.0'
 ./kaiwu repositories
 ./kaiwu up
 ```
@@ -134,12 +137,13 @@ export KAIWU_REPOSITORY_REF='v0.1.0'
 ## 项目哲学
 
 1. 业务项目必须能离开平台独立开发和部署。
-2. AI 可以参与设计，但不是创建项目或后续开发的强制工具。
-3. 模型产生受校验的蓝图，源码和工程文件由版本化模板确定性渲染。
+2. 团队自行选择 IDE 或 AI 编码工具，在业务仓库中设计、开发和验证业务功能。
+3. 平台根据项目配置，用版本化模板确定性渲染基础源码与工程文件。
 4. 权限、数据库迁移、日志、安全、CI 和部署不是生成之后再补的附件。
 5. 面向用户的显示可以变化，权限码、状态码和服务协议必须保持稳定。
 6. 只做开发者能够理解、验证和维护的能力。
 
 ## License
 
-Kaiwu 入口与产品仓统一采用 [Apache License 2.0](LICENSE)。
+Kaiwu 入口与产品仓统一采用 [Apache License 2.0](LICENSE)。“开物载道”“Kaiwu”名称与标识的使用
+见 [商标政策](TRADEMARKS.md)。

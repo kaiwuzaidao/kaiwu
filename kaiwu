@@ -28,14 +28,24 @@ Kaiwu 开源统一入口
   ./kaiwu doctor                 检查第一次运行所需环境
   ./kaiwu repositories           预览入口仓库来源与版本策略
   ./kaiwu init [--with-deploy]   初始化运行工作区；可选同时获取 GitOps 仓
-  ./kaiwu up [--no-build]        初始化并启动完整平台
+  ./kaiwu up [--build|--no-build]  初始化并启动完整平台；Release 版直接拉取预构建镜像
   ./kaiwu dev                    基础设施留在 Docker，应用以本机进程运行
   ./kaiwu status                 查看容器状态
   ./kaiwu logs [-f|--tail N]     查看应用日志；默认打印最近 200 行后退出，-f 跟随
   ./kaiwu credentials            查看首次登录信息
   ./kaiwu context-public-key     输出业务后端本地联调所需 Context 公钥
-  ./kaiwu import-project-menu <sql>  导入受审查的生成项目菜单
   ./kaiwu reload-routes          重新加载 Compose 受管业务路由
+  ./kaiwu project-up <后端仓> [前端仓]  一条命令在 Docker 里运行生成的业务项目并接入平台
+  ./kaiwu project-down <项目编码>      停止 project-up 启动的业务项目，保留数据
+  ./kaiwu login [--client <名称>] [--local]  授权本机命令行（AI 编码工具用它代你操作平台，最长 7 天）；
+                                       --local 在本机平台上免浏览器点击
+  ./kaiwu logout | whoami              退出 CLI 会话 / 查看当前身份
+  ./kaiwu project new <编码> --name <名称>  登记项目并生成前后端基础脚手架
+  ./kaiwu project status <编码> [--wait]  查看或等待生成结果
+  ./kaiwu project pull <编码> [--dir <目录>]  下载、解压两个业务仓并各自 git init
+  ./kaiwu project sync <后端仓> [--apply]  把仓库里 kaiwu/*.yml 的字典、配置、菜单同步到平台（先看计划）
+  ./kaiwu access members|roles|permissions <编码>  查看项目成员、角色、可授予的权限码
+  ./kaiwu access member-set|member-remove|role-create|role-grant ...  管理项目成员与角色授权
   ./kaiwu local-status|local-logs|local-down  管理本机应用进程
   ./kaiwu down                   停止平台并保留数据
   ./kaiwu reset                  二次确认后删除本地平台数据
@@ -44,7 +54,7 @@ Kaiwu 开源统一入口
 
 Fork / 自建 Git：
   KAIWU_REPOSITORY_BASE_URL=https://github.com/kaiwuzaidao ./kaiwu up
-  KAIWU_REPOSITORY_REF=v0.1.0 ./kaiwu up
+  KAIWU_REPOSITORY_REF=v0.2.0 ./kaiwu up
 EOF
 }
 
@@ -226,8 +236,8 @@ case "$command_name" in
     delegate init "$@"
     ;;
   up)
-    if [[ $# -gt 1 || ( $# -eq 1 && "${1:-}" != "--no-build" ) ]]; then
-      echo "up 只接受可选参数 --no-build。" >&2
+    if [[ $# -gt 1 || ( $# -eq 1 && "${1:-}" != "--no-build" && "${1:-}" != "--build" ) ]]; then
+      echo "up 只接受可选参数 --build 或 --no-build。" >&2
       exit 2
     fi
     doctor
@@ -248,9 +258,17 @@ case "$command_name" in
     [[ $# -eq 0 ]] || { echo "${command_name} 不接受参数。" >&2; exit 2; }
     delegate "$command_name"
     ;;
-  import-project-menu)
-    [[ $# -eq 1 ]] || { echo "用法：./kaiwu import-project-menu <生成后端仓/sql/menu.sql>" >&2; exit 2; }
-    delegate import-project-menu "$1"
+  project-up)
+    [[ $# -ge 1 && $# -le 2 ]] || { echo "用法：./kaiwu project-up <业务后端仓目录> [业务前端仓目录]" >&2; exit 2; }
+    delegate project-up "$@"
+    ;;
+  project-down)
+    [[ $# -eq 1 ]] || { echo "用法：./kaiwu project-down <项目编码>" >&2; exit 2; }
+    delegate project-down "$1"
+    ;;
+  login|logout|whoami|project|access)
+    # CLI 设备授权、项目开通与成员授权（ADR 0035），参数校验由 System 启动器负责。
+    delegate "$command_name" "$@"
     ;;
   help|--help|-h)
     usage
