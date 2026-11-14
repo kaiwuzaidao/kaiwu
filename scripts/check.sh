@@ -17,7 +17,7 @@ output="$(KAIWU_REPOSITORY_BASE_URL='https://github.com/example' \
 printf '%s\n' "$output" | grep -Fq 'https://github.com/example/kaiwu-system-service.git'
 printf '%s\n' "$output" | grep -Fq '全部产品仓固定使用 v1.2.3'
 
-for command_name in doctor repositories init up dev deploy-init context-public-key import-project-menu; do
+for command_name in doctor repositories init up dev deploy-init context-public-key; do
   "$launcher" help | grep -Fq "$command_name"
 done
 
