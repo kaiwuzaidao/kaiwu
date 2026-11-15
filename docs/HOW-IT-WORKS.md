@@ -1,205 +1,56 @@
-# Kaiwu 是怎么运作的
+# 从订单中心看 Kaiwu v0.2.0
 
-十分钟读完，用来判断 Kaiwu 是否适合你的团队。
+如果你的团队要做一个订单后台，可以先在 Kaiwu 开通项目。平台管理谁能进入后台，项目工厂给出可运行的前后端起点；订单表、定价规则和履约流程由业务团队在自己的仓库中开发。下面的截图取自 MySQL 空库启动的公开版本，示例项目为 `order-center`。
 
-这是**导览**，不是规范。每一节末尾都指向真正的事实源；出现分歧时以产品仓文档为准。
+## 从开通项目到接手源码
 
-## 五个仓，各自独立
+在工作台点「开通项目」，填写项目名称和编码。生成任务完成后，「项目工厂」提供后端 ZIP 和前端 ZIP。也可以用 CLI 生成并取回两个 Git 仓库，命令见[首页的完整示例](../README.md#生成第一个项目)。
 
-Kaiwu 不是一个大仓库。你现在看到的入口只有主页、初始化脚本和导航，产品源码在五个
-独立仓库里，各自有自己的 Git 历史、CI、版本和发布节奏。
+![项目工厂中订单中心任务已成功，页面提供两个 ZIP 下载入口](assets/project-factory.png)
 
-```mermaid
-flowchart TB
-    subgraph 运行件
-        GW["kaiwu-gateway-service<br/>唯一外部入口 · 8088"]
-        SYS["kaiwu-system-service<br/>控制面后端 · 8080"]
-        WEB["kaiwu-system-web<br/>管理前端 · 8000"]
-    end
-    SDK["kaiwu-system-starter<br/>业务服务接入 SDK · 发到 Maven 仓"]
-    DEPLOY["kaiwu-deploy<br/>GitOps 部署声明 · 可选"]
+每个项目编码只生成一次。业务团队在独立仓库里维护表结构、菜单声明、接口和测试。生成的后端提供 Flyway 迁移、Starter 接入和权限检查；前端提供应用外壳、菜单、字典和权限组件。本机用 `project-up` 接入后，成员可从工作台打开业务后台。[项目工厂与交付方式](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/PROJECT_FACTORY.md)
 
-    WEB -->|"/api"| GW
-    GW --> SYS
-    SDK -.被生成的业务服务依赖.-> GW
-    DEPLOY -.声明环境值.-> SYS
+## 成员能进哪个项目，能看哪些数据
+
+「项目管理」同时列出平台内置项目 `system` 和订单中心。打开哪一行的「权限中心」，就在哪个项目内管理成员、角色和菜单。图中订单中心的代码已经生成，业务后台地址还没有配置。
+
+![项目管理中的 Kaiwu System 与订单中心](assets/projects.png)
+
+下图是内置项目的权限菜单，其中有工作台等菜单，也有具体操作的权限码。业务项目使用同一套模型，在自己的后端仓维护 `kaiwu/menus.yml`；前端按钮可见性和后端操作校验共用权限码。
+
+![内置项目权限中心，展示平台菜单、按钮和权限码](assets/permissions.png)
+
+浏览器通过 Web 访问 Gateway。Gateway 验证登录会话、确认项目访问权限，再签发绑定目标服务的短期 Context。业务服务用 Starter 本地验证 Context。需要限制记录范围时，管理员可按角色和资源选择「仅本人」「本部门」等范围，业务端声明要保护的表，再接入 `kaiwu-data-scope`。[项目接入](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/PROJECT_ACCESS.md) · [数据范围配置与接入](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/DATA_SCOPE.md)
+
+## 让配置跟着项目走
+
+项目字典可以继承全局默认项。图中左侧选中了「数据范围类型」，右侧列出标签和稳定的字典值。用户看到的中文或英文可以变化，代码通过字典值判断业务状态。
+
+![字典管理中显示数据范围类型及其字典值](assets/dictionary.png)
+
+开发时，先在业务后端仓维护菜单、字典、参数和多语言清单，再预览将要写入的内容：
+
+```bash
+./kaiwu project sync ../business/order-center-service
+./kaiwu project sync ../business/order-center-service --apply
 ```
 
-前三个是进程，`kaiwu-system-starter` 是给业务服务用的 SDK（不是运行进程），
-`kaiwu-deploy` 只在你走 Kubernetes/GitOps 时才需要。
+跨环境时，在项目权限中心打开「配置移交」。源环境导出移交包，目标环境先预览差异，再选择要应用的条目。角色授权和删除要单独勾选，成员和密钥留在各自环境。[配置移交规则](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/adr/0042-project-config-handover.md)
 
-> 详见 [仓库地图](REPOSITORIES.md)
+![订单中心的配置移交面板，提供导出、导入预览和移交记录](assets/handover.png)
 
-## 一个请求怎么走
+## 让业务事件回到工作台
 
-理解 Kaiwu 的最快方式是跟着一个请求走一遍：
+假设订单需要复核，业务服务可以按业务键向处理人投递待办。同一项目、业务键和处理人的重复投递会更新已有待办。复核完成或订单撤销时，由业务服务关闭或取消待办，工作台随之更新。成员从待办进入对应项目，业务状态仍由订单中心维护。[统一待办接入示例](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/UNIFIED_TODO.md)
 
-1. 浏览器请求 `/api/projects`，打到 **Web** 的 nginx
-2. nginx 把 `/api` 反代给 **Gateway**（前端不直连后端，这条是硬约束）
-3. Gateway 验证 Access JWT 与 Redis 里的在线会话
-4. Gateway 按 Route 声明的访问模式决定策略；若是业务项目接口，还要向 System 确认
-   调用者确实是该项目的有效成员
-5. Gateway 签发一枚 **60 秒、绑定目标服务 audience** 的内部 Context，转发请求
-6. **System** 或业务服务用 Starter **本地验证**这枚 Context，不再回头询问平台
+有附件的项目还可绑定对象存储。业务服务按项目前缀申请临时凭据，文件记录由业务库保存。使用者可按需启用文件登记、附件挂载和孤儿清理。[项目对象存储](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/adr/0039-project-object-storage-via-sts.md)
 
-第 6 步是关键：正常业务请求**不会**产生"业务服务 → 平台"的同步调用。平台不会成为
-每个业务请求的性能瓶颈和故障点。
+## 助手如何选择模型
 
-## 三条边界
+管理员在「大模型配置」添加兼容的提供方，再分配任务识别模型和回答模型。已有默认配置时，两种用途均可复用它。下图是新安装的实际状态，尚未接入模型。
 
-Kaiwu 的多数设计可以归结为三条边界，它们解释了为什么架构长这样。
+![大模型配置中独立的任务识别模型和回答模型选择器](assets/model-routing.png)
 
-**① Gateway 不持有权限事实**
+助手支持个人对话和已审核的项目能力。查询按用户对目标项目的授权执行；涉及写入时，用户先确认操作。项目工厂生成基础脚手架可以独立运行。[模型用途分配](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/adr/0043-agent-multi-model-routing.md) · [跨项目能力](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/adr/0030-agent-cross-project-capabilities.md)
 
-Gateway 只做身份、会话、项目成员三件事，没有数据库连接，不执行业务规则。
-权限的唯一事实源是 System。这样做的代价是 Gateway 需要向 System 查项目授权（带缓存），
-换来的是不会出现两套会漂移的权限数据。
-
-**② Kaiwu 自己也是一个项目**
-
-平台的成员、角色、菜单、登录权限，全部存在一个 `project_code=system` 的内置项目下，
-和业务项目走完全相同的表和相同的授权路径。没有"平台专用"的特权旁路。
-
-![项目管理](assets/projects.png)
-
-上图里 `Kaiwu System` 和两个业务项目在同一张列表、同一套操作入口下。区别只有一处：
-它标着"内置"，停用与归档是灰的——平台自身不能被自己停用，其余一视同仁。
-
-**③ 生成的项目必须能离开平台**
-
-项目工厂对每个项目**只生成一次**，产出独立的前后端仓库、独立数据库、独立部署边界。
-生成完成后 Kaiwu 不再碰业务源码——你用自己的 IDE、自己的 AI 工具、自己的 CI 继续开发。
-平台升级不会覆盖你的业务代码，你的业务变化也不会反向拖住平台。
-
-![项目权限中心](assets/permissions.png)
-
-上图是一个业务项目的权限菜单：菜单树、按钮和 `mod:res:act` 权限码在同一处维护，
-后端注解、前端按钮与菜单 SQL 使用同一个权限码，由 CI 校验三处一致。
-
-> 详见各产品仓的 `docs/ARCHITECTURE.md` 与 ADR 目录
-
-## AI 在哪一步
-
-项目工厂按项目配置生成基础脚手架。业务功能由团队在取回的仓库中开发，团队可以选择自己的 IDE 或 AI 编码工具。
-
-```
-项目编码、名称和基础包名等配置
-        ↓
-   确定性模板渲染基础源码与工程文件
-        ↓
-   取回独立前后端仓库
-        ↓
-   团队使用 IDE 或 AI 编码工具开发业务功能
-        ↓
-   运行项目自带的校验与测试
-```
-
-当前创建入口使用 `BASIC_SCAFFOLD`。可以通过
-`./kaiwu project new order-center --name "订单中心"` 创建，再用 `project status` 查看进度、
-`project pull` 取回两个仓库。
-
-平台模板提供鉴权接入、工程结构和校验入口。后续开发遵循业务仓的 `AGENTS.md`，
-由团队维护数据模型、业务逻辑、权限清单和测试，并按需合并模板升级。
-
-> 详见 `kaiwu-system-service/docs/PROJECT_FACTORY.md` 与 ADR 0038。
-
-## 三类项目，一套体系
-
-Kaiwu 里的每个东西都是一个「项目」，按来源和生命周期分三类。三类项目的区别只在怎么来、怎么下线、是否跨项目；
-除此之外，它们站在同一套平台体系上，不允许各自另做一套。
-
-```mermaid
-flowchart TB
-    SYS["平台本体（system）<br/>随平台安装"]
-    subgraph APPS["能力应用 · 可安装 / 卸载"]
-        WF["流程与文档"]
-        MORE1["……"]
-    end
-    subgraph BIZ["业务项目 · 项目工厂创建"]
-        B1["你的业务系统 A"]
-        B2["你的业务系统 B"]
-    end
-    SHARED["共用一套平台体系<br/>登录与网关 · 项目成员角色权限 · 菜单字典配置多语言<br/>待办与通知 · 前端外壳模板 · Docker 部署约定"]
-
-    SYS -->|安装| APPS
-    SYS -->|生成| BIZ
-    BIZ -->|调用| APPS
-    APPS --- SHARED
-    BIZ --- SHARED
-```
-
-| | 平台本体 | 能力应用 | 业务项目 |
-|---|---|---|---|
-| 怎么来 | 随平台安装 | 从平台发行版内置的应用目录安装 | 项目工厂生成源码，团队接手开发 |
-| 怎么下线 | 不可停用或删除 | 可停用、卸载；数据默认保留，重装可恢复 | 走项目归档 |
-| 两级操作 | — | 先在平台**安装**一次（管理端、菜单、目录登记），再给具体业务项目**启用**（登记该项目、配好双方凭据与路由；选独占时另起一套实例） | — |
-| 代码归属 | Kaiwu | Kaiwu 维护，使用者只升级版本 | 你的团队 |
-| 服务对象 | 整个平台 | 供业务项目按需启用；默认一套实例服务所有启用的项目，数据按项目隔离，隔离要求高的项目可选独占实例 | 只服务自己 |
-| 权限 | 平台权限 | 本应用权限，加上对目标业务项目的授权 | 本项目权限 |
-
-**共用的部分**（三类都必须遵守）：
-
-- 统一登录，一切请求走 Gateway；
-- 同一个项目模型：成员、角色、菜单、权限码（平台自身也是一个项目）；
-- 菜单、字典、配置、多语言用同一套清单和同步方式；
-- 统一待办与站内通知；
-- 前端用项目工厂模板的同一套外壳：侧栏、顶部操作栏、权限按钮、字典组件；
-- 同一套 Docker 部署约定（`compose.yml` + 网关路由声明）。
-
-所以一个能力应用装进来以后，看起来、用起来都和平台本身一致；业务项目接入某个能力，也只是调用它，不需要理解另一套规则。
-
-> 状态：分类和共用体系是当前约定。能力应用的一键安装与卸载（`kaiwu app install` / `uninstall`）正在设计，第一期只支持 Docker，相应 ADR 发布后在此补链接。
-
-## 生成出来的项目长什么样
-
-不是一个空壳。每个生成的后端仓库自带：
-
-- 三模块结构、分页边界、统一异常与响应
-- Flyway 迁移脚本与权限菜单 SQL
-- 接入 Starter 的鉴权、字典、配置、站内信、定时任务
-- 约定测试（架构依赖、分页上限、敏感日志、API 兼容基线）
-- `CLAUDE.md` 与 `AGENTS.md`，写明路径、构建命令、权限/字典/Context 契约和常见坑
-
-最后一条是给 AI Coding 工具准备的：你的团队接手后继续用 Claude Code、Codex 或 Cursor
-开发时，这些文件让工具知道该守什么规矩。
-
-## 工程约束是可执行的
-
-Kaiwu 把权限三端同码、字典使用、迁移前向性、分页上限、敏感日志、服务寻址等约束
-写成了 CI 门禁，而不是文档里的建议。约束目录在
-`kaiwu-system-service/docs/kaiwu-constraints.json`，每条都标注了强度、理由和执行方式。
-
-这意味着违反约定的代码**会让构建变红**，而不是等到 code review 或线上事故。
-
-
-![字典管理](assets/dictionary.png)
-
-字典是其中一例：需要翻译或运营配置的业务状态统一走字典组件，新增受管字典必须
-后端 seed 与前端 fallback 同批提交，由 `pnpm check:dict` 校验。
-
-> 详见 ADR 0020「风险分级的工程约束」
-
-## 国际化怎样保持一致
-
-Kaiwu 不把国际化理解成前端里多放几份 JSON。用户语言偏好保存在 System，换浏览器登录可以恢复；
-固定界面、跨服务错误、动态菜单和全局字典沿同一语言目录工作。Gateway、System 和 Starter 返回
-稳定的 `messageKey/messageArgs`，翻译不会改变状态码、权限码、字典值、19 位 ID 或 Context。
-
-初始完整语言是 `zh-CN` 和 `en-US`。新语言只有在必需资源、内置菜单和全局字典全部覆盖后才会
-出现在选择器中，避免把“能够选择”误当成“已经可用”。资源加载失败时保留上一份完整快照，不因
-翻译服务异常清除会话或写入不完整偏好。
-
-国际化也遵守业务所有权边界：平台不会把语言资源回写到已经生成成功的业务仓。业务项目需要支持
-哪些语言、字段和内容，由业务团队在自己的前后端仓库中持续维护。
-
-> 详见 `kaiwu-system-service/docs/REQUIREMENTS.md` 4.9 与 ADR 0011
-
-## 接下来
-
-| 你想 | 去哪 |
-|---|---|
-| 跑起来看看 | 回到 [主页](../README.md) 的「5 分钟开始」 |
-| 了解仓库怎么分工 | [仓库地图](REPOSITORIES.md) |
-| 读完整架构设计 | `kaiwu-system-service/docs/ARCHITECTURE.md` |
-| 看每个决策的来龙去脉 | `kaiwu-system-service/docs/adr/` |
-| 参与开发 | [CONTRIBUTING.md](../CONTRIBUTING.md) |
+[启动平台](../README.md#在本机启动-v020) · [查看五个产品仓](REPOSITORIES.md)

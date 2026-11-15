@@ -1,133 +1,60 @@
 # Kaiwu
 
-*[中文](README.md) · English*
+[中文](README.md) · [v0.2.0 release](https://github.com/kaiwuzaidao/kaiwu/releases/tag/v0.2.0)
 
-> Take a back-office project from "can be generated" to "can be understood, verified, and
-> maintained for years."
+Kaiwu gives multiple back-office applications a shared sign-in, workbench, project permissions and task inbox. Each business application has its own frontend repository, backend repository, database and release cycle.
 
-Kaiwu is a general-purpose back-office development platform for delivering many projects.
-Users, projects, permissions, menus, dictionaries, configuration, i18n, auditing, a single
-entry point, and a deterministic project scaffold all live in one governance plane — while
-every business project is delivered as its own frontend and backend repositories, its own
-database, and its own deployment boundary.
+For example, open an Order Center project to generate two source archives. Your team owns the application code and can publish its menus, dictionaries and permission declarations back to the platform.
 
-The project factory uses versioned templates to deterministically generate a basic frontend
-and backend scaffold from the project configuration. After downloading the independent
-repositories, your team develops business features with its own IDE or AI coding tools,
-such as Codex, Claude Code, or Cursor.
+![The workbench showing Order Center and its generation notification, in the Chinese UI](docs/assets/workbench.png)
 
-## Five minutes to a running platform
+## Run v0.2.0 locally
 
-You need Git, Docker Compose v2, and OpenSSL — nothing else:
+Install Git, Docker with Compose v2, OpenSSL and curl. This starts MySQL locally and uses the release images from GHCR on amd64 or arm64.
 
 ```bash
-git clone https://github.com/kaiwuzaidao/kaiwu.git kaiwu
+git clone --branch v0.2.0 --depth 1 https://github.com/kaiwuzaidao/kaiwu.git
 cd kaiwu
 ./kaiwu doctor
-./kaiwu up
+KAIWU_DB_TYPE=mysql ./kaiwu up
 ```
 
-When the readiness message appears, open [http://127.0.0.1:8000](http://127.0.0.1:8000).
-The randomly generated initial password is printed in the terminal, and you can print it
-again with:
+Open <http://127.0.0.1:8000>, sign in as `admin` with the randomly generated password printed in the terminal, and change it when prompted. Use `./kaiwu credentials` to show the initial credentials again. Run `./kaiwu down` to stop the stack and keep its data. Model configuration is optional for the project factory.
+
+For an existing installation, read the [upgrade guide](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/UPGRADING.md). DM8 requires a prepared instance and schema. [Database setup](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/DATABASES.md) · [MySQL and DM8 initialization SQL](https://github.com/kaiwuzaidao/kaiwu-system-service/releases/tag/v0.2.0)
+
+## Generate an application
+
+Open project management in the browser or run the commands below from the entry repository. Approve the CLI device request in your browser.
 
 ```bash
-./kaiwu credentials
+./kaiwu login --client "kaiwu-demo"
+./kaiwu project new order-center --name "Order Center"
+./kaiwu project status order-center --wait
+./kaiwu project pull order-center
+./kaiwu project-up ../business/order-center-service ../business/order-center-web
 ```
 
-The first run needs no AI provider, no Nacos, no Kubernetes, no ArgoCD, and no external
-MySQL or Redis. Images are built from source; every base image comes from a public
-registry, so no private credentials are involved.
+The two independent Git repositories are created in the adjacent `business/` directory. Once the local build finishes, open the application from the workbench. For an existing project, start with the status command. [Full walkthrough](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/QUICKSTART.md)
 
-## Pick your route
+![Successful project generation with separate backend and frontend ZIP downloads](docs/assets/project-factory.png)
 
-| I want to | Go to |
+## Platform capabilities
+
+| Task | How it works |
 | --- | --- |
-| Try the platform | `./kaiwu up`, then follow the workbench to create a basic project |
-| Walk through the full tutorial | `docs/QUICKSTART.md` in `kaiwu-system-service`: start the platform, create your first project, take the two repositories, run them locally |
-| Build my first business project | Download the standalone backend and frontend from the project factory, continue in your own tools |
-| Run a generated project locally | `./kaiwu project-up ../business/<project-code>-service` — one command wires it into the platform; open it from the workbench |
-| Deploy to one server | `docs/SERVER-DEPLOYMENT.md` in the `kaiwu-system-service` repository |
-| Deploy to Kubernetes (Helm) | `docs/KUBERNETES.md` in `kaiwu-system-service`; the chart is at `deploy/helm/kaiwu` |
-| Deploy to Kubernetes (GitOps) | Run `./kaiwu deploy-init` to fetch `kaiwu-deploy`, then follow the guide above |
-| Understand how it works | [How Kaiwu works](docs/HOW-IT-WORKS.md) — ten minutes |
-| Hand this to an AI coding tool | [AGENTS.md](AGENTS.md) — the entry point for Codex, Claude Code, Cursor, Trae |
-| Work on the platform itself | `docs/LOCAL-DEVELOPMENT.md` in `kaiwu-system-service`: the `./kaiwu dev` hybrid mode, breakpoints, restarting a single service |
-| Contribute | [CONTRIBUTING.md](CONTRIBUTING.md) and the [repository map](docs/REPOSITORIES.md) |
+| Control access to business data | Assign members and roles per project, configure resource-specific data scopes and apply row filters in a MyBatis-Plus backend. [Data scopes](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/DATA_SCOPE.md) |
+| Deliver configuration with code | Keep menus, dictionaries, settings and translations in the backend repository. Preview changes with `project sync`, then apply them explicitly. Project administrators can also transfer configuration across environments. [Project factory](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/PROJECT_FACTORY.md) |
+| Route work to a user | Business services open and close tasks by business key. Assignees see their tasks on the workbench. [Unified tasks](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/UNIFIED_TODO.md) |
+| Add file and spreadsheet support | Bind storage to a project, issue prefix-scoped temporary credentials and opt in to file registration. Excel import and export is a separate dependency. [Starter repository](https://github.com/kaiwuzaidao/kaiwu-system-starter/tree/v0.2.0) |
+| Connect a model and project actions | Select models for planning and answering, keep personal conversations and expose approved project actions. Remote writes require confirmation. [Assistant integration](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/adr/0030-agent-cross-project-capabilities.md) |
 
-> Documents listed under `kaiwu-system-service` appear in
-> `workspace/kaiwu-system-service/docs/` after `./kaiwu up` or `./kaiwu init`. Before that,
-> browse the same paths in that repository directly.
+The Maven Central group is `com.kaiwuzaidao`. Use version `0.2.0` of `kaiwu-system-starter` for platform integration, `kaiwu-data-scope` for row filtering, or `kaiwu-excel` for spreadsheet support.
 
-## What it actually solves
+## Further reading
 
-- **Full platforms are too heavy.** One business project drags in a pile of unrelated
-  modules and historical conventions.
-- **Low-code boundaries are unclear.** Fast at first; extension, debugging, and migration
-  get expensive once real complexity arrives.
-- **Copied scaffolds drift.** The first and the fifth project in the same organisation stop
-  looking like the same engineering.
-- **AI context windows are finite.** When platform and business facts share one giant repo,
-  the search surface is too large and edits miss things.
-- **AI output runs but cannot ship.** Permissions, migrations, logging, security, CI, and
-  deployment contracts are missing.
-- **Platform and business code get entangled.** Upgrading the platform risks overwriting
-  business code; business change drags the platform.
+- [Illustrated platform guide (Chinese)](docs/HOW-IT-WORKS.md) · [Repository map (Chinese)](docs/REPOSITORIES.md)
+- [Single-server deployment](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/SERVER-DEPLOYMENT.md) · [Kubernetes deployment](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/KUBERNETES.md)
+- [Coding agent guide](AGENTS.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
 
-Kaiwu provides a consistent project foundation through a thin platform, independent business
-repositories, deterministic templates, and executable engineering gates.
-
-The project factory generates each project **once**. After you have the two repositories,
-Kaiwu never overwrites your business source again.
-
-## Repositories
-
-This entry repository holds no product source. After the first run, `workspace/` contains
-four runtime repositories; a fifth is added when you choose Kubernetes/GitOps:
-
-```text
-workspace/
-├── kaiwu-system-service       # Control plane, unified launcher, Helm chart
-├── kaiwu-gateway-service      # The only external API entry
-├── kaiwu-system-web           # Platform admin frontend
-├── kaiwu-system-starter       # SDK for business services
-└── kaiwu-deploy               # Optional, added by ./kaiwu deploy-init
-```
-
-They stay separate Git repositories. `workspace/` is ignored here, so no nested commits.
-No submodules: ordinary users get a matching workspace from one command, while maintainers
-keep committing, testing, and releasing in their own repositories.
-
-## Forks, self-hosted Git, and versions
-
-Releases use the **same immutable tag** across the entry and all product repositories.
-Override the organisation or the version explicitly:
-
-```bash
-export KAIWU_REPOSITORY_BASE_URL='https://github.com/kaiwuzaidao'
-export KAIWU_REPOSITORY_REF='v0.2.0'
-./kaiwu repositories
-./kaiwu up
-```
-
-The entry never overwrites an existing repository and never switches your branch. Actual
-product commits are recorded in `workspace/.kaiwu/workspace.lock` so a problem can be
-reproduced.
-
-## Project philosophy
-
-1. A business project must be able to leave the platform and still be developed and deployed.
-2. Teams choose their own IDE or AI coding tools to design, develop, and verify business
-   features in their repositories.
-3. The platform renders basic source and engineering files deterministically from project
-   configuration and versioned templates.
-4. Permissions, migrations, logging, security, CI, and deployment are not attachments added
-   after generation.
-5. User-facing text may change; permission codes, status codes, and service protocols must
-   stay stable.
-6. Only ship capabilities a developer can understand, verify, and maintain.
-
-## License
-
-[Apache License 2.0](LICENSE). Use of the “开物载道” and “Kaiwu” names and logos is covered by the
-[Trademark Policy](TRADEMARKS.md#trademark-policy-english).
+[Apache License 2.0](LICENSE) · [Trademark policy](TRADEMARKS.md#trademark-policy-english)

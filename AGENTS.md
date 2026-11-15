@@ -6,13 +6,13 @@
 ## 先做这一步
 
 ```bash
-./kaiwu doctor   # 检查 Git / Docker Compose v2 / OpenSSL 是否就绪
-./kaiwu up       # 取仓 + 构建 + 启动，完成后访问 http://127.0.0.1:8000
+./kaiwu doctor   # 检查 Git、Docker Compose v2、OpenSSL 和 curl
+KAIWU_DB_TYPE=mysql ./kaiwu up  # 取仓、初始化并启动，完成后访问 http://127.0.0.1:8000
 ./kaiwu credentials   # 初始管理员账号与随机初始密码
 ```
 
-`./kaiwu up` 会从源码构建镜像，基础镜像全部来自公共仓库，不需要任何私有凭据。
-第一次构建需要拉 Maven 与 npm 依赖，耗时取决于网络。
+检出发行标签后，`./kaiwu up` 默认拉取同版 GHCR 预构建镜像，拉取失败时会尝试本机构建。
+开发态或显式指定 `--build` 时会从源码构建，首次构建需要拉取 Maven 与 npm 依赖。
 
 失败时先看 `./kaiwu doctor` 的输出，再看 `./kaiwu logs`（默认打印最近 200 行后退出；
 要持续跟随才加 `-f`）；不要绕过脚本直接敲 `docker compose`——端口、密钥与 Compose
@@ -24,7 +24,7 @@
 COMPOSE_PROJECT_NAME=kaiwu-demo KAIWU_WEB_PORT=8100 KAIWU_GATEWAY_PORT=8188 ./kaiwu up
 ```
 
-只改项目名会共用同一批数据卷——新生成的随机口令对不上旧卷里的库，MySQL 起不来；
+只改端口会共用同一批数据卷——新生成的随机口令对不上旧卷里的库，MySQL 起不来；
 只改项目名不改端口，则卡在 `Bind for 127.0.0.1:8088 failed: port is already allocated`。
 
 ## 生成并取回一个业务项目
@@ -87,7 +87,7 @@ workspace/
 | 十分钟搞懂它怎么运作 | `docs/HOW-IT-WORKS.md` |
 | 搞清楚五个仓各管什么 | `docs/REPOSITORIES.md` |
 | 第一次完整走一遍 | `workspace/kaiwu-system-service/docs/QUICKSTART.md` |
-| 本地开发与调试（挂断点、热重载、看日志） | `workspace/kaiwu-system-service/docs/LOCAL-DEVELOPMENT.md` |
+| 本地起停、登录与取回项目 | `workspace/kaiwu-system-service/docs/QUICKSTART.md` |
 | 部署到一台服务器 | `workspace/kaiwu-system-service/docs/SERVER-DEPLOYMENT.md` |
 | 部署到 Kubernetes | `workspace/kaiwu-system-service/docs/KUBERNETES.md` |
 | 接自己已有的 MySQL / Redis | `workspace/kaiwu-system-service/docs/SERVER-DEPLOYMENT.md`（Compose）或 `docs/KUBERNETES.md`（Helm） |
