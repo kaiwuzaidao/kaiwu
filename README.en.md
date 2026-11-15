@@ -8,9 +8,17 @@ For example, open an Order Center project to generate two source archives. Your 
 
 ![The workbench showing Order Center and its generation notification, in the Chinese UI](docs/assets/workbench.png)
 
+If your coding agent can run commands locally, give it this prompt:
+
+```text
+Check out the latest stable release tag from https://github.com/kaiwuzaidao/kaiwu and start Kaiwu locally using AGENTS.md. Ask which project I want to build before setting up its backend and frontend.
+```
+
 ## Run v0.2.0 locally
 
 Install Git, Docker with Compose v2, OpenSSL and curl. This starts MySQL locally and uses the release images from GHCR on amd64 or arm64.
+
+For a new installation, find the tag on the [latest release page](https://github.com/kaiwuzaidao/kaiwu/releases/latest). The example uses `v0.2.0` to reproduce the screenshots. Substitute your chosen release tag when installing another version.
 
 ```bash
 git clone --branch v0.2.0 --depth 1 https://github.com/kaiwuzaidao/kaiwu.git
@@ -25,7 +33,7 @@ For an existing installation, read the [upgrade guide](https://github.com/kaiwuz
 
 ## Generate an application
 
-Open project management in the browser or run the commands below from the entry repository. Approve the CLI device request in your browser.
+Open project management in the browser or run the commands below from the entry repository. Approve the CLI device request in your browser. Replace the example project name and code with your own.
 
 ```bash
 ./kaiwu login --client "kaiwu-demo"
@@ -36,6 +44,8 @@ Open project management in the browser or run the commands below from the entry 
 ```
 
 The two independent Git repositories are created in the adjacent `business/` directory. Once the local build finishes, open the application from the workbench. For an existing project, start with the status command. [Full walkthrough](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/QUICKSTART.md)
+
+In v0.2.0 a generated app can fail to start because its JAR lacks resources or Nginx cannot read its configuration. Verify it from the workbench. [Startup fix](https://github.com/kaiwuzaidao/kaiwu-system-service/pull/1)
 
 ![Successful project generation with separate backend and frontend ZIP downloads](docs/assets/project-factory.png)
 
