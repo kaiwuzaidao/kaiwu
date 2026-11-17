@@ -41,7 +41,7 @@ KAIWU_DB_TYPE=mysql ./kaiwu up
 
 ## 产品先做演示，再接入平台
 
-先取得[产品前端起步仓](https://github.com/kaiwuzaidao/kaiwu-web-starter/tree/v0.3.0)，从仓库目录执行以下命令可创建一个独立的空白前端。要快速体验双人设备预约，在初始化命令末尾加 `--example booking`。产品验收和开发交接步骤见 [AI 协作开发指南](docs/AI-DEVELOPMENT.md)。
+在工作目录执行以下命令，取得[产品前端起步仓](https://github.com/kaiwuzaidao/kaiwu-web-starter/tree/v0.3.0) 并创建独立的空白前端。要快速体验双人设备预约，在初始化命令末尾加 `--example booking`。产品验收和开发交接步骤见 [AI 协作开发指南](docs/AI-DEVELOPMENT.md)。
 
 ```sh
 git clone --branch v0.3.0 --depth 1 https://github.com/kaiwuzaidao/kaiwu-web-starter.git
