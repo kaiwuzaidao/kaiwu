@@ -1,22 +1,16 @@
 # Kaiwu · 开物载道
 
-[简体中文](README.md) · [Website](http://kaiwu.shengzhiweilai.online/en/) · [Try the workbench](http://kaiwu.shengzhiweilai.online/try/index.html?lang=en) · [Developer handbook](http://kaiwu.shengzhiweilai.online/en/start) · [GitHub](https://github.com/kaiwuzaidao/kaiwu) · [Gitee](https://gitee.com/wujm12138/kaiwu)
+[Kaiwu website](http://kaiwu.shengzhiweilai.online/en/) · [Live demo](http://kaiwu.shengzhiweilai.online/try/index.html?lang=en) · [Quick start guide](http://kaiwu.shengzhiweilai.online/en/start) · [GitHub](https://github.com/kaiwuzaidao/kaiwu) · [Gitee](https://gitee.com/wujm12138/kaiwu) · [简体中文](README.md)
 
-**Build business applications with AI. Share the enterprise foundations with Kaiwu.** Kaiwu gives each project its own Spring Boot backend, React frontend and database. Your team owns the source and decides when to test and release it.
+Kaiwu is a platform for developing and delivering enterprise applications with AI.
 
-For example, a purchasing app and an inventory app can use the same employee accounts while granting access separately. Your coding agent can change a stock-count rule in the inventory repositories. The app can reuse managed dictionaries and translations, connect file storage for attachments or add Excel for bulk imports.
+## Quick start
 
-## Start with your AI agent
-
-Give this prompt to a coding agent that can use your local terminal:
+[Explore the workbench](http://kaiwu.shengzhiweilai.online/try/index.html?lang=en) without signing in. To build your own application, give this prompt to a coding agent with access to your local terminal.
 
 ```text
 Get the latest stable Kaiwu release from https://github.com/kaiwuzaidao/kaiwu and follow AGENTS.md to start it locally. Ask what I want to build, then set up its backend and frontend.
 ```
-
-The project factory generates the initial repositories. Your agent implements features there, previews menu and permission changes and runs the repository checks. Review account access when prompted and use the Git diff and test results to review changes. [AI development guide](http://kaiwu.shengzhiweilai.online/en/ai-development) · [CLI reference](http://kaiwu.shengzhiweilai.online/en/commands)
-
-![Kaiwu workbench showing project entries and tasks for the signed-in member](docs/assets/workbench.png)
 
 ## Run v0.2.0 locally
 
@@ -34,6 +28,16 @@ KAIWU_DB_TYPE=mysql ./kaiwu up
 Open <http://127.0.0.1:8000>, sign in as `admin` with the randomly generated password printed in the terminal, and change it when prompted. Use `./kaiwu credentials` to show the initial credentials again. Run `./kaiwu down` to stop the stack and keep its data. Model configuration is optional for the project factory.
 
 For an existing installation, read the [upgrade guide](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/UPGRADING.md). DM8 requires a prepared instance and schema. [Database setup](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/DATABASES.md) · [MySQL and DM8 initialization SQL](https://github.com/kaiwuzaidao/kaiwu-system-service/releases/tag/v0.2.0)
+
+## How applications use the platform
+
+Each project has its own Spring Boot backend, React frontend and business database. Your team owns the source and decides when to test and release it.
+
+For example, a purchasing app and an inventory app can use the same employee accounts while granting access separately. Your coding agent can change a stock-count rule in the inventory repositories. The app can reuse managed dictionaries and translations, connect file storage for attachments or add Excel for bulk imports.
+
+The project factory generates the initial repositories. Your agent implements features there, previews menu and permission changes and runs the repository checks. Review account access when prompted and use the Git diff and test results to review changes. [AI development guide](http://kaiwu.shengzhiweilai.online/en/ai-development) · [CLI reference](http://kaiwu.shengzhiweilai.online/en/commands)
+
+![Kaiwu workbench showing project entries and tasks for the signed-in member](docs/assets/workbench.png)
 
 ## Generate an application
 
