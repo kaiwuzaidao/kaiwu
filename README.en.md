@@ -1,18 +1,22 @@
-# Kaiwu
+# Kaiwu · 开物载道
 
-[中文](README.md) · [v0.2.0 release](https://github.com/kaiwuzaidao/kaiwu/releases/tag/v0.2.0)
+[简体中文](README.md) · [Website](http://kaiwu.shengzhiweilai.online/en/) · [Try the workbench](http://kaiwu.shengzhiweilai.online/try/index.html?lang=en) · [Developer handbook](http://kaiwu.shengzhiweilai.online/en/start) · [GitHub](https://github.com/kaiwuzaidao/kaiwu) · [Gitee](https://gitee.com/wujm12138/kaiwu)
 
-Kaiwu gives multiple back-office applications a shared sign-in, workbench, project permissions and task inbox. Each business application has its own frontend repository, backend repository, database and release cycle.
+**Build business applications with AI. Share the enterprise foundations with Kaiwu.** Kaiwu gives each project its own Spring Boot backend, React frontend and database. Your team owns the source and decides when to test and release it.
 
-For example, open an Order Center project to generate two source archives. Your team owns the application code and can publish its menus, dictionaries and permission declarations back to the platform.
+For example, a purchasing app and an inventory app can use the same employee accounts while granting access separately. Your coding agent can change a stock-count rule in the inventory repositories. The app can reuse managed dictionaries and translations, connect file storage for attachments or add Excel for bulk imports.
 
-![The workbench showing Order Center and its generation notification, in the Chinese UI](docs/assets/workbench.png)
+## Start with your AI agent
 
-If your coding agent can run commands locally, give it this prompt:
+Give this prompt to a coding agent that can use your local terminal:
 
 ```text
-Check out the latest stable release tag from https://github.com/kaiwuzaidao/kaiwu and start Kaiwu locally using AGENTS.md. Ask which project I want to build before setting up its backend and frontend.
+Get the latest stable Kaiwu release from https://github.com/kaiwuzaidao/kaiwu and follow AGENTS.md to start it locally. Ask what I want to build, then set up its backend and frontend.
 ```
+
+The project factory generates the initial repositories. Your agent implements features there, previews menu and permission changes and runs the repository checks. Review account access when prompted and use the Git diff and test results to review changes. [AI development guide](http://kaiwu.shengzhiweilai.online/en/ai-development) · [CLI reference](http://kaiwu.shengzhiweilai.online/en/commands)
+
+![Kaiwu workbench showing project entries and tasks for the signed-in member](docs/assets/workbench.png)
 
 ## Run v0.2.0 locally
 

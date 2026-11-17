@@ -1,18 +1,22 @@
 # Kaiwu · 开物载道
 
-[English](README.en.md) · [v0.2.0 发布说明](https://github.com/kaiwuzaidao/kaiwu/releases/tag/v0.2.0)
+[English](README.en.md) · [官网](http://kaiwu.shengzhiweilai.online/) · [在线体验](http://kaiwu.shengzhiweilai.online/try/index.html) · [开发手册](http://kaiwu.shengzhiweilai.online/start) · [Gitee](https://gitee.com/wujm12138/kaiwu) · [GitHub](https://github.com/kaiwuzaidao/kaiwu)
 
-Kaiwu 是供多个业务系统共用的后台开发平台。团队可以用同一个工作台登录、分配项目成员、配置权限、接收待办；每个业务项目则有自己的前后端仓库、数据库和发布流程。
+**让 AI 自由创造业务，让平台承载企业能力。** Kaiwu 是面向 AI 时代的企业应用开发与交付平台。每个项目都有自己的 Spring Boot 后端、React 前端和业务数据库，由团队管理源码，独立测试和发布。
 
-例如，开通一个「订单中心」后，项目工厂会交付两份源码 ZIP。你可以在自己的仓库里添加订单表、接口和页面，再把菜单、字典和权限声明同步到平台。下一次升级 Kaiwu，业务源码仍由你的团队维护。
+比如采购和库存可以沿用同一批员工账号，分别授予采购员和仓管员权限。盘点规则变了，AI 只需在库存项目的业务仓里改代码。业务字典、多语言文案、附件存储可以按需接入，需要批量导入时再加 Excel 组件。
 
-![工作台展示订单中心、生成成功通知和当前成员需要处理的事项](docs/assets/workbench.png)
+## 让 AI 帮我开工
 
-使用本机 AI 编码工具时，可以复制这句话：
+把这句话复制给能使用本机终端的 AI 编码工具：
 
 ```text
-从 https://gitee.com/wujm12138/kaiwu 检出最新稳定版标签，按 AGENTS.md 在本机启动 Kaiwu。问我想开发什么项目，等我回答后再准备前后端。
+从 https://gitee.com/wujm12138/kaiwu 获取 Kaiwu 最新稳定版，按 AGENTS.md 在本机启动。问我想开发什么项目，再按我的回答准备前后端。
 ```
+
+项目工厂交付前后端基础工程，Agent 在业务仓里实现需求、预览菜单和权限变更、运行随仓校验。需要账号授权时由你确认。交接时可以查看 Git 差异和测试结果。[AI 开发指南](http://kaiwu.shengzhiweilai.online/ai-development) · [CLI 命令索引](http://kaiwu.shengzhiweilai.online/commands)
+
+![Kaiwu 工作台展示当前成员的项目入口和待办事项](docs/assets/workbench.png)
 
 ## 在本机启动 v0.2.0
 
