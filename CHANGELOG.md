@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.3.0
+
+支持从独立的产品前端开始演示，通过 project adopt 登记项目并取回配套后端。
+
+
 ## Unreleased
 
 ## 0.2.0

@@ -1,6 +1,6 @@
 # Kaiwu
 
-[中文](README.md) · [v0.2.0 release](https://github.com/kaiwuzaidao/kaiwu/releases/tag/v0.2.0)
+[中文](README.md) · [v0.3.0 release](https://github.com/kaiwuzaidao/kaiwu/releases/tag/v0.3.0)
 
 Kaiwu gives multiple back-office applications a shared sign-in, workbench, project permissions and task inbox. Each business application has its own frontend repository, backend repository, database and release cycle.
 
@@ -8,12 +8,12 @@ For example, open an Order Center project to generate two source archives. Your 
 
 ![The workbench showing Order Center and its generation notification, in the Chinese UI](docs/assets/workbench.png)
 
-## Run v0.2.0 locally
+## Run v0.3.0 locally
 
 Install Git, Docker with Compose v2, OpenSSL and curl. This starts MySQL locally and uses the release images from GHCR on amd64 or arm64.
 
 ```bash
-git clone --branch v0.2.0 --depth 1 https://github.com/kaiwuzaidao/kaiwu.git
+git clone --branch v0.3.0 --depth 1 https://github.com/kaiwuzaidao/kaiwu.git
 cd kaiwu
 ./kaiwu doctor
 KAIWU_DB_TYPE=mysql ./kaiwu up
@@ -21,7 +21,7 @@ KAIWU_DB_TYPE=mysql ./kaiwu up
 
 Open <http://127.0.0.1:8000>, sign in as `admin` with the randomly generated password printed in the terminal, and change it when prompted. Use `./kaiwu credentials` to show the initial credentials again. Run `./kaiwu down` to stop the stack and keep its data. Model configuration is optional for the project factory.
 
-For an existing installation, read the [upgrade guide](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/UPGRADING.md). DM8 requires a prepared instance and schema. [Database setup](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/DATABASES.md) · [MySQL and DM8 initialization SQL](https://github.com/kaiwuzaidao/kaiwu-system-service/releases/tag/v0.2.0)
+For an existing installation, read the [upgrade guide](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/UPGRADING.md). DM8 requires a prepared instance and schema. [Database setup](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/DATABASES.md) · [MySQL and DM8 initialization SQL](https://github.com/kaiwuzaidao/kaiwu-system-service/releases/tag/v0.3.0)
 
 ## Generate an application
 
@@ -35,26 +35,30 @@ Open project management in the browser or run the commands below from the entry 
 ./kaiwu project-up ../business/order-center-service ../business/order-center-web
 ```
 
-The two independent Git repositories are created in the adjacent `business/` directory. Once the local build finishes, open the application from the workbench. For an existing project, start with the status command. [Full walkthrough](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/QUICKSTART.md)
+The two independent Git repositories are created in the adjacent `business/` directory. Once the local build finishes, open the application from the workbench. For an existing project, start with the status command. [Full walkthrough](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/QUICKSTART.md)
 
 ![Successful project generation with separate backend and frontend ZIP downloads](docs/assets/project-factory.png)
+
+## Prototype before connecting a backend
+
+Clone the [frontend starter at v0.3.0](https://github.com/kaiwuzaidao/kaiwu-web-starter/tree/v0.3.0). Run `node scripts/kaiwu-init.mjs --code equipment-booking --name Booking --example booking`, then run `pnpm install --frozen-lockfile` and `pnpm dev` in the new sibling directory. Open `/__mock/` to select a demo user. Omit the example option to start a blank project. Once the UI is accepted, preview `./kaiwu project adopt <frontend-directory>` from the platform entry repository.
 
 ## Platform capabilities
 
 | Task | How it works |
 | --- | --- |
-| Control access to business data | Assign members and roles per project, configure resource-specific data scopes and apply row filters in a MyBatis-Plus backend. [Data scopes](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/DATA_SCOPE.md) |
-| Deliver configuration with code | Keep menus, dictionaries, settings and translations in the backend repository. Preview changes with `project sync`, then apply them explicitly. Project administrators can also transfer configuration across environments. [Project factory](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/PROJECT_FACTORY.md) |
-| Route work to a user | Business services open and close tasks by business key. Assignees see their tasks on the workbench. [Unified tasks](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/UNIFIED_TODO.md) |
-| Add file and spreadsheet support | Bind storage to a project, issue prefix-scoped temporary credentials and opt in to file registration. Excel import and export is a separate dependency. [Starter repository](https://github.com/kaiwuzaidao/kaiwu-system-starter/tree/v0.2.0) |
-| Connect a model and project actions | Select models for planning and answering, keep personal conversations and expose approved project actions. Remote writes require confirmation. [Assistant integration](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/adr/0030-agent-cross-project-capabilities.md) |
+| Control access to business data | Assign members and roles per project, configure resource-specific data scopes and apply row filters in a MyBatis-Plus backend. [Data scopes](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/DATA_SCOPE.md) |
+| Deliver configuration with code | Keep menus, dictionaries, settings and translations in the backend repository. Preview changes with `project sync`, then apply them explicitly. Project administrators can also transfer configuration across environments. [Project factory](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/PROJECT_FACTORY.md) |
+| Route work to a user | Business services open and close tasks by business key. Assignees see their tasks on the workbench. [Unified tasks](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/UNIFIED_TODO.md) |
+| Add file and spreadsheet support | Bind storage to a project, issue prefix-scoped temporary credentials and opt in to file registration. Excel import and export is a separate dependency. [Starter repository](https://github.com/kaiwuzaidao/kaiwu-system-starter/tree/v0.3.0) |
+| Connect a model and project actions | Select models for planning and answering, keep personal conversations and expose approved project actions. Remote writes require confirmation. [Assistant integration](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0030-agent-cross-project-capabilities.md) |
 
 The Maven Central group is `com.kaiwuzaidao`. Use version `0.2.0` of `kaiwu-system-starter` for platform integration, `kaiwu-data-scope` for row filtering, or `kaiwu-excel` for spreadsheet support.
 
 ## Further reading
 
 - [Illustrated platform guide (Chinese)](docs/HOW-IT-WORKS.md) · [Repository map (Chinese)](docs/REPOSITORIES.md)
-- [Single-server deployment](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/SERVER-DEPLOYMENT.md) · [Kubernetes deployment](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/KUBERNETES.md)
+- [Single-server deployment](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/SERVER-DEPLOYMENT.md) · [Kubernetes deployment](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/KUBERNETES.md)
 - [Coding agent guide](AGENTS.md) · [Contributing](CONTRIBUTING.md) · [Changelog](CHANGELOG.md)
 
 [Apache License 2.0](LICENSE) · [Trademark policy](TRADEMARKS.md#trademark-policy-english)

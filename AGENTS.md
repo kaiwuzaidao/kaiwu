@@ -115,7 +115,7 @@ workspace/
 
 ```bash
 KAIWU_REPOSITORY_BASE_URL=https://github.com/kaiwuzaidao ./kaiwu repositories
-KAIWU_REPOSITORY_REF=v0.2.0 ./kaiwu up
+KAIWU_REPOSITORY_REF=v0.3.0 ./kaiwu up
 ```
 
 正式发行时入口与五个产品仓使用**同名不可变 tag**。初始化时发现同名 tag 缺失必须

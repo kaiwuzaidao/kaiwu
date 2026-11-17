@@ -56,7 +56,7 @@ Kaiwu 开源统一入口
 
 Fork / 自建 Git：
   KAIWU_REPOSITORY_BASE_URL=https://github.com/kaiwuzaidao ./kaiwu up
-  KAIWU_REPOSITORY_REF=v0.2.0 ./kaiwu up
+  KAIWU_REPOSITORY_REF=v0.3.0 ./kaiwu up
 EOF
 }
 
