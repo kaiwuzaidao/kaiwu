@@ -1,16 +1,22 @@
 # Kaiwu · 开物载道
 
-[English](README.en.md) · [v0.2.0 发布说明](https://github.com/kaiwuzaidao/kaiwu/releases/tag/v0.2.0)
+[Kaiwu 官网](http://kaiwu.shengzhiweilai.online/) · [在线体验](http://kaiwu.shengzhiweilai.online/try/index.html) · [快速开始指南](http://kaiwu.shengzhiweilai.online/start) · [Gitee](https://gitee.com/wujm12138/kaiwu) · [GitHub](https://github.com/kaiwuzaidao/kaiwu) · [English](README.en.md)
 
-Kaiwu 是供多个业务系统共用的后台开发平台。团队可以用同一个工作台登录、分配项目成员、配置权限、接收待办；每个业务项目则有自己的前后端仓库、数据库和发布流程。
+Kaiwu 是面向 AI 时代的企业应用开发与交付平台。
 
-例如，开通一个「订单中心」后，项目工厂会交付两份源码 ZIP。你可以在自己的仓库里添加订单表、接口和页面，再把菜单、字典和权限声明同步到平台。下一次升级 Kaiwu，业务源码仍由你的团队维护。
+## 快速开始
 
-![工作台展示订单中心、生成成功通知和当前成员需要处理的事项](docs/assets/workbench.png)
+想先看效果？[打开在线工作台](http://kaiwu.shengzhiweilai.online/try/index.html)即可免登录体验。要开发自己的项目，把这句话复制给能使用本机终端的 AI 编码工具。
+
+```text
+从 https://gitee.com/wujm12138/kaiwu 获取 Kaiwu 最新稳定版，按 AGENTS.md 在本机启动。问我想开发什么项目，再按我的回答准备前后端。
+```
 
 ## 在本机启动 v0.2.0
 
 准备 Git、Docker（含 Compose v2）、OpenSSL 和 curl。下面的命令选择本地 MySQL，从 GHCR 拉取发行版的预构建镜像，支持 amd64 和 arm64。
+
+首次安装可在[发行页](https://github.com/kaiwuzaidao/kaiwu/releases/latest)查看最新稳定标签。下面用 `v0.2.0` 复现本页截图；安装其他版本时，将命令中的标签换成选定版本。
 
 ```bash
 git clone --branch v0.2.0 --depth 1 https://github.com/kaiwuzaidao/kaiwu.git
@@ -23,9 +29,19 @@ KAIWU_DB_TYPE=mysql ./kaiwu up
 
 已有平台数据库的用户，先查看[升级说明](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/UPGRADING.md)。如需使用达梦 DM8，请先准备独立实例和 Schema。[数据库配置](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/DATABASES.md) · [MySQL / DM8 初始化 DDL 与 DML](https://github.com/kaiwuzaidao/kaiwu-system-service/releases/tag/v0.2.0)
 
+## 平台与业务项目如何配合
+
+每个项目都有自己的 Spring Boot 后端、React 前端和业务数据库，由团队管理源码，独立测试和发布。
+
+比如采购和库存可以沿用同一批员工账号，分别授予采购员和仓管员权限。盘点规则变了，AI 只需在库存项目的业务仓里改代码。业务字典、多语言文案、附件存储可以按需接入，需要批量导入时再加 Excel 组件。
+
+项目工厂交付前后端基础工程，Agent 在业务仓里实现需求、预览菜单和权限变更、运行随仓校验。需要账号授权时由你确认。交接时可以查看 Git 差异和测试结果。[AI 开发指南](http://kaiwu.shengzhiweilai.online/ai-development) · [CLI 命令索引](http://kaiwu.shengzhiweilai.online/commands)
+
+![Kaiwu 工作台展示当前成员的项目入口和待办事项](docs/assets/workbench.png)
+
 ## 生成第一个项目
 
-在网页的「项目管理 → 开通项目」填写名称和编码，或在入口仓目录运行以下命令。命令行会提示打开浏览器确认设备授权。
+在网页的「项目管理 → 开通项目」填写名称和编码，或在入口仓目录运行以下命令。命令行会提示打开浏览器确认设备授权。下文的订单中心仅为示例，运行前替换为自己的名称和编码。
 
 ```bash
 ./kaiwu login --client "kaiwu-demo"
@@ -36,6 +52,8 @@ KAIWU_DB_TYPE=mysql ./kaiwu up
 ```
 
 `project pull` 会把两个独立 Git 仓库放在入口仓旁的 `business/` 目录。`project-up` 构建并接入本机平台，完成后从工作台打开业务后台。已有同名项目时，从查询状态那一步继续。[完整教程](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/QUICKSTART.md)
+
+v0.2.0 中，生成项目可能因 JAR 缺少资源或 Nginx 配置读取权限而启动失败。请从工作台打开业务页面验证。[故障与修复进展](https://github.com/kaiwuzaidao/kaiwu-system-service/pull/1)
 
 ![订单中心的生成任务已成功，可分别下载后端和前端 ZIP](docs/assets/project-factory.png)
 

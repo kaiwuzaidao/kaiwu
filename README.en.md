@@ -1,16 +1,22 @@
-# Kaiwu
+# Kaiwu · 开物载道
 
-[中文](README.md) · [v0.2.0 release](https://github.com/kaiwuzaidao/kaiwu/releases/tag/v0.2.0)
+[Kaiwu website](http://kaiwu.shengzhiweilai.online/en/) · [Live demo](http://kaiwu.shengzhiweilai.online/try/index.html?lang=en) · [Quick start guide](http://kaiwu.shengzhiweilai.online/en/start) · [GitHub](https://github.com/kaiwuzaidao/kaiwu) · [Gitee](https://gitee.com/wujm12138/kaiwu) · [简体中文](README.md)
 
-Kaiwu gives multiple back-office applications a shared sign-in, workbench, project permissions and task inbox. Each business application has its own frontend repository, backend repository, database and release cycle.
+Kaiwu is a platform for developing and delivering enterprise applications with AI.
 
-For example, open an Order Center project to generate two source archives. Your team owns the application code and can publish its menus, dictionaries and permission declarations back to the platform.
+## Quick start
 
-![The workbench showing Order Center and its generation notification, in the Chinese UI](docs/assets/workbench.png)
+[Explore the workbench](http://kaiwu.shengzhiweilai.online/try/index.html?lang=en) without signing in. To build your own application, give this prompt to a coding agent with access to your local terminal.
+
+```text
+Get the latest stable Kaiwu release from https://github.com/kaiwuzaidao/kaiwu and follow AGENTS.md to start it locally. Ask what I want to build, then set up its backend and frontend.
+```
 
 ## Run v0.2.0 locally
 
 Install Git, Docker with Compose v2, OpenSSL and curl. This starts MySQL locally and uses the release images from GHCR on amd64 or arm64.
+
+For a new installation, find the tag on the [latest release page](https://github.com/kaiwuzaidao/kaiwu/releases/latest). The example uses `v0.2.0` to reproduce the screenshots. Substitute your chosen release tag when installing another version.
 
 ```bash
 git clone --branch v0.2.0 --depth 1 https://github.com/kaiwuzaidao/kaiwu.git
@@ -23,9 +29,19 @@ Open <http://127.0.0.1:8000>, sign in as `admin` with the randomly generated pas
 
 For an existing installation, read the [upgrade guide](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/UPGRADING.md). DM8 requires a prepared instance and schema. [Database setup](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/DATABASES.md) · [MySQL and DM8 initialization SQL](https://github.com/kaiwuzaidao/kaiwu-system-service/releases/tag/v0.2.0)
 
+## How applications use the platform
+
+Each project has its own Spring Boot backend, React frontend and business database. Your team owns the source and decides when to test and release it.
+
+For example, a purchasing app and an inventory app can use the same employee accounts while granting access separately. Your coding agent can change a stock-count rule in the inventory repositories. The app can reuse managed dictionaries and translations, connect file storage for attachments or add Excel for bulk imports.
+
+The project factory generates the initial repositories. Your agent implements features there, previews menu and permission changes and runs the repository checks. Review account access when prompted and use the Git diff and test results to review changes. [AI development guide](http://kaiwu.shengzhiweilai.online/en/ai-development) · [CLI reference](http://kaiwu.shengzhiweilai.online/en/commands)
+
+![Kaiwu workbench showing project entries and tasks for the signed-in member](docs/assets/workbench.png)
+
 ## Generate an application
 
-Open project management in the browser or run the commands below from the entry repository. Approve the CLI device request in your browser.
+Open project management in the browser or run the commands below from the entry repository. Approve the CLI device request in your browser. Replace the example project name and code with your own.
 
 ```bash
 ./kaiwu login --client "kaiwu-demo"
@@ -36,6 +52,8 @@ Open project management in the browser or run the commands below from the entry 
 ```
 
 The two independent Git repositories are created in the adjacent `business/` directory. Once the local build finishes, open the application from the workbench. For an existing project, start with the status command. [Full walkthrough](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.2.0/docs/QUICKSTART.md)
+
+In v0.2.0 a generated app can fail to start because its JAR lacks resources or Nginx cannot read its configuration. Verify it from the workbench. [Startup fix](https://github.com/kaiwuzaidao/kaiwu-system-service/pull/1)
 
 ![Successful project generation with separate backend and frontend ZIP downloads](docs/assets/project-factory.png)
 

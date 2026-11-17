@@ -1,6 +1,6 @@
 # Kaiwu 开源入口 · Agent 指引
 
-你现在在 **入口仓**。它不含产品源码，只负责三件事：把五个产品仓取到
+你现在在 **入口仓**。它不含产品源码，只负责三件事：把运行所需的四个产品仓取到
 `workspace/`、用一条命令把平台跑起来、告诉你接下来该读哪份文档。
 
 ## 先做这一步
@@ -21,7 +21,9 @@ KAIWU_DB_TYPE=mysql ./kaiwu up  # 取仓、初始化并启动，完成后访问 
 同一台机器上已经跑着另一份 Kaiwu 时，**项目名和对外端口都要错开**，两者缺一不可：
 
 ```bash
-COMPOSE_PROJECT_NAME=kaiwu-demo KAIWU_WEB_PORT=8100 KAIWU_GATEWAY_PORT=8188 ./kaiwu up
+export COMPOSE_PROJECT_NAME=kaiwu-demo KAIWU_PLATFORM_NETWORK=kaiwu-demo_default
+export KAIWU_WEB_PORT=8100 KAIWU_GATEWAY_PORT=8188
+KAIWU_DB_TYPE=mysql ./kaiwu up
 ```
 
 只改端口会共用同一批数据卷——新生成的随机口令对不上旧卷里的库，MySQL 起不来；
@@ -29,7 +31,7 @@ COMPOSE_PROJECT_NAME=kaiwu-demo KAIWU_WEB_PORT=8100 KAIWU_GATEWAY_PORT=8188 ./ka
 
 ## 生成并取回一个业务项目
 
-平台跑起来之后，生成业务项目不需要操作网页，按下面的顺序在命令行完成（ADR 0035）：
+平台就绪后先问用户想开发哪个项目，再约定名称与唯一编码。以下订单中心仅为示例，运行前替换所有示例值。已有项目先查状态，成功生成过的项目直接取回。
 
 ```bash
 ./kaiwu login --client "<你的工具名>" --local   # 本机平台：免点击；--local 不可用或失败时会打印 /device 链接，由用户核对后点「允许」
@@ -43,7 +45,7 @@ COMPOSE_PROJECT_NAME=kaiwu-demo KAIWU_WEB_PORT=8100 KAIWU_GATEWAY_PORT=8188 ./ka
 
 ```bash
 ./kaiwu project sync ../business/order-center-service          # 先看计划：仓库里 kaiwu/*.yml 的菜单、字典、配置与平台的差异
-./kaiwu project sync ../business/order-center-service --apply  # 确认后写入（只新增、不删除）
+./kaiwu project sync ../business/order-center-service --apply  # 确认后写入（新增资源或更新声明字段，保留参数当前值）
 ./kaiwu access permissions order-center                        # 项目里可授予的权限码
 ./kaiwu access roles order-center                              # 角色
 ./kaiwu access role-create order-center auditor --name "审计员"
@@ -86,11 +88,10 @@ workspace/
 | --- | --- |
 | 十分钟搞懂它怎么运作 | `docs/HOW-IT-WORKS.md` |
 | 搞清楚五个仓各管什么 | `docs/REPOSITORIES.md` |
-| 第一次完整走一遍 | `workspace/kaiwu-system-service/docs/QUICKSTART.md` |
 | 本地起停、登录与取回项目 | `workspace/kaiwu-system-service/docs/QUICKSTART.md` |
 | 部署到一台服务器 | `workspace/kaiwu-system-service/docs/SERVER-DEPLOYMENT.md` |
 | 部署到 Kubernetes | `workspace/kaiwu-system-service/docs/KUBERNETES.md` |
-| 接自己已有的 MySQL / Redis | `workspace/kaiwu-system-service/docs/SERVER-DEPLOYMENT.md`（Compose）或 `docs/KUBERNETES.md`（Helm） |
+| 接自己已有的 MySQL / Redis | `workspace/kaiwu-system-service/docs/SERVER-DEPLOYMENT.md`（Compose）或同仓的 `docs/KUBERNETES.md`（Helm） |
 | 用 Nacos 管理运行配置 | `workspace/kaiwu-system-service/docs/NACOS.md`，配置模板在同仓 `deploy/nacos/` |
 | 理解架构与历史决策 | `workspace/kaiwu-system-service/docs/ARCHITECTURE.md` 与 `docs/adr/` |
 | 在平台上生成一个业务项目 | `workspace/kaiwu-system-service/docs/PROJECT_FACTORY.md` |
