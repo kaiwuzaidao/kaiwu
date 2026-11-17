@@ -54,7 +54,7 @@ COMPOSE_PROJECT_NAME=kaiwu-demo KAIWU_WEB_PORT=8100 KAIWU_GATEWAY_PORT=8188 ./ka
 
 - 远程平台上的授权必须由用户本人在浏览器里确认；CLI 会话最长 7 天，可在安全运营中心强制下线。
   会话的平台权限被收窄到「生成并取回项目、同步清单」，成员与角色授权则按用户在该项目里的权限判定。
-- `kaiwu/menus.yml`、`dicts.yml`、`configs.yml` 在业务后端仓里；新增接口权限码时同批补 `menus.yml`，再 `project sync`。
+- `kaiwu/menus.yml`、`dicts.yml`、`configs.yml` 默认在业务后端仓，产品主导项目放在已有前端仓；新增接口权限码时同批补 `menus.yml`，再 `project sync`。
   提交前运行业务仓里的 `bash scripts/verify.sh`。
 - `project new` 根据项目配置生成基础脚手架；取回后在业务仓中开发数据模型和业务功能。项目编码一经生成不可重复生成。
 - 取回的两个仓库自带各自的 `AGENTS.md`，后续开发在那两个仓里进行。推送到用户自己的 Git 服务前，
@@ -84,6 +84,7 @@ workspace/
 
 | 你要做什么 | 读哪里 |
 | --- | --- |
+| 产品做 Mock 或开发接手已验收的业务前端 | [AI 协作开发指南](docs/AI-DEVELOPMENT.md) |
 | 十分钟搞懂它怎么运作 | `docs/HOW-IT-WORKS.md` |
 | 搞清楚五个仓各管什么 | `docs/REPOSITORIES.md` |
 | 第一次完整走一遍 | `workspace/kaiwu-system-service/docs/QUICKSTART.md` |
@@ -114,7 +115,7 @@ workspace/
 
 ```bash
 KAIWU_REPOSITORY_BASE_URL=https://github.com/kaiwuzaidao ./kaiwu repositories
-KAIWU_REPOSITORY_REF=v0.2.0 ./kaiwu up
+KAIWU_REPOSITORY_REF=v0.3.0 ./kaiwu up
 ```
 
 正式发行时入口与五个产品仓使用**同名不可变 tag**。初始化时发现同名 tag 缺失必须
