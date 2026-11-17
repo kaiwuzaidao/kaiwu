@@ -84,6 +84,7 @@ workspace/
 
 | 你要做什么 | 读哪里 |
 | --- | --- |
+| 产品做 Mock 或开发接手已验收的业务前端 | [AI 协作开发指南](docs/AI-DEVELOPMENT.md) |
 | 十分钟搞懂它怎么运作 | `docs/HOW-IT-WORKS.md` |
 | 搞清楚五个仓各管什么 | `docs/REPOSITORIES.md` |
 | 第一次完整走一遍 | `workspace/kaiwu-system-service/docs/QUICKSTART.md` |
