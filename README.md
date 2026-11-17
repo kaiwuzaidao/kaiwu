@@ -39,6 +39,26 @@ KAIWU_DB_TYPE=mysql ./kaiwu up
 
 ![订单中心的生成任务已成功，可分别下载后端和前端 ZIP](docs/assets/project-factory.png)
 
+## 产品先做演示，再接入平台
+
+从 `kaiwu-web-starter` 目录执行以下命令可创建一个独立的空白前端。需要体验采购审批时，在初始化命令末尾加 `--example purchase`。
+
+```sh
+node scripts/kaiwu-init.mjs --code inventory --name 库存管理
+cd ../inventory-web
+pnpm install --frozen-lockfile
+pnpm dev
+```
+
+打开开发服务器打印的地址，进入 `/__mock/` 选择演示身份。页面定稿后，开发者使用含纳管功能的入口与 System，在入口仓登录并运行以下命令。这里假设业务前端和入口仓位于同一个父目录。
+
+```sh
+./kaiwu project adopt ../inventory-web
+./kaiwu project adopt ../inventory-web --apply
+```
+
+配套后端会生成在 `../inventory-service`。实现业务 API 后，在原前端运行 `pnpm dev:real` 即可联调。后续清单变更使用 `./kaiwu project sync ../inventory-web`。已单独启用兼容 Workflow 服务并登记业务回调的项目，还可使用 `./kaiwu workflow sync ../inventory-web` 预览流程导入。
+
 ## v0.2.0 可以做什么
 
 | 场景 | 在哪里做 |
