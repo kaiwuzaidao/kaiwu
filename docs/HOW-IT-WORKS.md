@@ -4,7 +4,7 @@
 
 ## 从开通项目到接手源码
 
-在工作台点「开通项目」，填写项目名称和编码。生成任务完成后，「项目工厂」提供后端 ZIP 和前端 ZIP。也可以用 CLI 生成并取回两个 Git 仓库，命令见[首页的完整示例](../README.md#生成第一个项目)。
+在工作台点「开通项目」，填写项目名称和编码。生成任务完成后，「项目工厂」提供后端 ZIP 和前端 ZIP。也可以用 CLI 生成并取回两个 Git 仓库，命令见[首页的完整示例](../README.md#生成第一个业务双仓)。
 
 ![项目工厂中订单中心任务已成功，页面提供两个 ZIP 下载入口](assets/project-factory.png)
 
@@ -53,4 +53,4 @@
 
 助手支持个人对话和已审核的项目能力。查询按用户对目标项目的授权执行；涉及写入时，用户先确认操作。项目工厂生成基础脚手架可以独立运行。[模型用途分配](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0043-agent-multi-model-routing.md) · [跨项目能力](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0030-agent-cross-project-capabilities.md)
 
-[启动平台](../README.md#在本机启动-v020) · [查看五个产品仓](REPOSITORIES.md)
+[启动平台](../README.md#启动完整平台) · [查看产品仓](REPOSITORIES.md)
