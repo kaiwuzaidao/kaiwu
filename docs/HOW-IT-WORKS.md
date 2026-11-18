@@ -35,15 +35,17 @@
 ./kaiwu project sync ../business/order-center-service --apply
 ```
 
-跨环境时，在项目权限中心打开「配置移交」。源环境导出移交包，目标环境先预览差异，再选择要应用的条目。角色授权和删除要单独勾选，成员和密钥留在各自环境。[配置移交规则](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0042-project-config-handover.md)
+跨环境时，在项目权限中心打开「配置移交」。源环境一次导出包含字典、参数默认值（自动跳过敏感项）、菜单、自定义角色授权与 `dataScopes`、定时任务及项目多语言在内的 6 类 YAML 全量快照，全部按业务键对齐而非数据库主键；目标环境导入时基于「上次移交基线 × 本次包 × 目标当前状态」做三方比对预览与 409 并发守卫，角色授权默认关闭，按组确认；源端删除逐项勾选，新建定时任务默认停用，成员和密钥留在各自环境，导出的 YAML 也可直接写回业务仓。[配置移交规则](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0042-project-config-handover.md)
 
 ![订单中心的配置移交面板，提供导出、导入预览和移交记录](assets/handover.png)
 
-## 让业务事件回到工作台
+## 让业务事件与安全存储回到统一底座
 
-假设订单需要复核，业务服务可以按业务键向处理人投递待办。同一项目、业务键和处理人的重复投递会更新已有待办。复核完成或订单撤销时，由业务服务关闭或取消待办，工作台随之更新。成员从待办进入对应项目，业务状态仍由订单中心维护。[统一待办接入示例](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/UNIFIED_TODO.md)
+假设订单需要复核，业务服务可通过 `TodoClient` 按业务键向处理人投递待办（原生支持或签、会签、撤回和逾期置顶），复核完成或订单撤销时由业务服务关闭或取消待办，工作台随之更新。成员从待办进入对应项目，业务状态仍由订单中心维护。[统一待办接入示例](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/UNIFIED_TODO.md)
 
-有附件的项目还可绑定对象存储。业务服务按项目前缀申请临时凭据，文件记录由业务库保存。使用者可按需启用文件登记、附件挂载和孤儿清理。[项目对象存储](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0039-project-object-storage-via-sts.md)
+有附件的项目可绑定对象存储。长期密钥加密留在 System，业务服务只领取 `{bucket}/{projectCode}/*` 前缀的短期 STS 临时凭据，文件字节直连存储不经 System 中转，业务库只保存 `storage_ref` 与 `object_key`（切换存储账号或桶时，保留原绑定即可读取旧文件）；还可按需启用统一文件台账 `kaiwu_file`、孤儿清理任务，以及防公式注入与 ZIP 炸弹的安全 `kaiwu-excel`。[项目对象存储](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0039-project-object-storage-via-sts.md)
+
+平台控制面在首次安装时还原生支持选择 **MySQL 或国产达梦 DM8**（配备独立 `kaiwu-dm-migrator` 迁移容器与实例参数预检）。[数据库配置](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/DATABASES.md)
 
 ## 助手如何选择模型
 

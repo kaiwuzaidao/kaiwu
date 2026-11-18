@@ -48,8 +48,9 @@ flowchart LR
 | 对比维度 | Kaiwu + AI 编码工具 | 低代码平台 | 传统后台脚手架 | 单独使用 AI 工具 |
 | --- | --- | --- | --- | --- |
 | **前端如何到上线** | 产品直出正式 React 前端 + Mock 验收，纳管后后端直接接 API 上线，沿用已验收页面；UI 库可换 | 拖拽表单直接发布，但复杂交互与自定义前端受限于平台扩展边界 | 产品画原型，专职前端照图重敲一遍，接口与交互反复对齐 | 很快生成一次性 Demo，但缺少鉴权、权限接入与 Mock 隔离，常需推倒重来 |
-| **多系统如何共享** | 新应用接入同一网关，已有员工按项目分配角色与数据范围，工作台自动出现入口 | 同平台应用通常可复用账号与角色体系 | 复制工程后各自一套登录表，跨系统共用账号与待办需自行改造 | 每次都要把登录协议、令牌与权限表结构重新喂给 AI |
-| **规则如何长期可控** | 独立小上下文仓库 + 规则/场景/Mock 绑定 + 权限三端同码门禁，便于换人或更换工具后接手 | 依赖设计器配置，复杂逻辑调试与代码化协作受限 | 复制多个工程后各自修改，公共能力修复靠人工逐仓同步 | 权限一致性、数据库迁移、敏感日志与发布契约全靠团队手工兜底 |
+| **多系统如何共享** | 新应用接入同一网关，已有员工按项目分配角色与行级数据范围，工作台自动出现入口与待办 | 同平台应用通常可复用账号与角色体系 | 复制工程后各自一套登录表，跨系统共用账号、待办与 STS 存储需自行改造 | 每次都要把登录协议、令牌与权限表结构重新喂给 AI |
+| **规则如何长期可控** | 独立小上下文仓库 + 规则/场景/Mock 绑定 + 权限三端同码与行级范围门禁，换人换工具不漂移 | 依赖设计器配置，复杂逻辑调试与代码化协作受限 | 复制多个工程后各自修改，公共能力修复靠人工逐仓同步 | 权限一致性、数据库迁移、敏感日志与发布契约全靠团队手工兜底 |
+| **跨环境配置与数据安全** | 测试到生产支持 **6 类配置全量快照移交**（三方基线 diff、授权/删除/定时任务安全确认）、SQL 行级过滤、密钥不出平台的 STS 对象存储与达梦 DM8 | 配置通常绑定平台运行库，跨环境差异审阅与仓库级版本化受限 | 跨环境菜单、字典、角色授权和任务常靠手工 SQL 对齐，易因主键不一致漏改或误删 | 极易遗漏行级过滤、把长期存储密钥写进配置，或因多环境同步靠人肉导致线上事故 |
 
 ---
 
@@ -155,13 +156,19 @@ KAIWU_DB_TYPE=mysql ./kaiwu up
 
 ## 平台内置的企业级能力
 
-| 能力领域 | 能做什么 | 技术文档 |
+很多开源后台只交付单机 CRUD 骨架；Kaiwu 把多团队协作、AI 时代防越权和跨环境上线最容易踩坑的基础设施做成可按需接入的控制面与 SDK：
+
+| 能力领域 | 具体解决什么问题 | 技术文档 |
 | --- | --- | --- |
-| **身份、角色与行级数据范围** | 统一登录 + Gateway 60 秒签名 Context；业务端接入 MyBatis-Plus 行级过滤（本人/本部门/指定部门） | [项目接入](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/PROJECT_ACCESS.md) · [数据范围](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/DATA_SCOPE.md) |
-| **前端纳管与清单移交** | `project adopt` 纳管产品前端、`project sync` 预览同步 `kaiwu/*.yml`、管理端跨环境配置移交 | [ADR 0048 前端纳管](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0048-adopt-existing-frontend.md) · [项目工厂](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/PROJECT_FACTORY.md) |
-| **统一待办与站内通知** | 业务服务按 `bizKey` 推送、更新或关闭待办，处理人统一从工作台进入办理 | [统一待办契约](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/UNIFIED_TODO.md) |
-| **对象存储 (STS) 与 Excel** | 项目绑定存储账号并领取限定前缀临时凭据；单独引入开箱即用的 XLSX 导入导出与模板校验 | [Starter 与组件库](https://github.com/kaiwuzaidao/kaiwu-system-starter/tree/v0.3.0) |
-| **受控项目 AI 助手** | PLAN / ANSWER 双阶段模型路由；按当前成员权限与数据范围只读查询，写操作先预览后确认 | [模型路由 ADR](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0043-agent-multi-model-routing.md) · [跨项目能力](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0030-agent-cross-project-capabilities.md) |
+| **跨环境配置移交（ADR 0042）** | 一次打包 6 类 YAML（字典/参数/菜单/含 `dataScopes` 的角色/定时任务/多语言），按业务键对齐不耦合 DB ID；三方基线 diff + 409 防并发覆盖，**授权按组确认、删除逐项勾选、新建定时任务默认停用**，导出也可直接回写代码仓 | [配置移交规则](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0042-project-config-handover.md) · [清单同步](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0036-platform-manifest-sync.md) |
+| **身份、角色与 SQL 行级数据范围** | Gateway 60 秒签名 Context，业务端本地验签零回调；`kaiwu-data-scope` 按角色 × 部门（`ALL`/`DEPT_AND_CHILD`/`DEPT`/`SELF`/`CUSTOM_DEPT`）在 SQL 层自动拦截并配套门禁，**防止 AI 写 CRUD 时漏加行级隔离** | [项目接入](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/PROJECT_ACCESS.md) · [数据范围](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/DATA_SCOPE.md) |
+| **产品前端纳管与双模式交付** | `project adopt` 一键纳管已有产品前端与 `kaiwu/*.yml`，生成配套后端并保留验收 UI；`project new` 一次生成双仓脚手架后平台永久退出写入 | [ADR 0048 前端纳管](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0048-adopt-existing-frontend.md) · [项目工厂](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/PROJECT_FACTORY.md) |
+| **项目级引用式国际化与受管字典** | 业务库只存稳定值，标签按账户语言下发；引用式 i18n 按项目 `scope_id` 隔离，消除内联 JSON“双真相源”漂移且不同项目译文互不泄露 | [项目作用域 i18n](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0037-project-scoped-i18n-resources.md) · [引用式多语言](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0015-referenced-i18n-is-the-only-multilingual-path.md) |
+| **对象存储 (STS) 与安全 Excel** | 长期 AK/SK 加密留平台，业务仅取 `{bucket}/{projectCode}/*` 前缀 STS 临时凭证且只存 `storage_ref + object_key`，**保留原绑定即可读取历史文件**；`kaiwu-excel` 防公式注入、防 ZIP 炸弹与静默截断 | [对象存储 STS](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0039-project-object-storage-via-sts.md) · [Starter 与组件库](https://github.com/kaiwuzaidao/kaiwu-system-starter/tree/v0.3.0) |
+| **统一待办、租约调度与达梦 DM8** | `TodoClient` 按 `bizKey` 幂等表达或签/会签/逾期置顶；租约调度器带 `fencingToken()` 防多副本脑裂；平台控制面首次部署原生可选 **MySQL 或达梦 DM8** | [统一待办](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/UNIFIED_TODO.md) · [MySQL / DM8](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/DATABASES.md) |
+| **受控项目 AI 助手** | `PLAN / ANSWER` 双模型路由；不把 OpenAPI 直接喂给大模型，按成员权限与 `ROLE_SCOPED` 数据范围只读查询，写操作先预览冻结版本、确认后同事务幂等执行 | [模型路由 ADR](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0043-agent-multi-model-routing.md) · [跨项目能力](https://github.com/kaiwuzaidao/kaiwu-system-service/blob/v0.3.0/docs/adr/0030-agent-cross-project-capabilities.md) |
+
+![订单中心的配置移交面板：导出全量快照、三方基线对比预览与移交记录](docs/assets/handover.png)
 
 > **Java SDK 坐标（Maven Central）**：`v0.3.0` 平台沿用已发布的 `com.kaiwuzaidao` `0.2.0` 组件：`kaiwu-system-starter`、`kaiwu-data-scope`、`kaiwu-excel`。
 
