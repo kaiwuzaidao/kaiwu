@@ -2,16 +2,16 @@
 
 # Kaiwu · 开物载道
 
-**产品用 AI 直出正式前端，后端接完接口即上线；独立业务仓与随仓门禁，让多应用共享企业底座。**
+**产品用 AI 直出正式前端，后端接手同一套页面联调与发布；独立业务仓与随仓门禁，让多应用共享企业底座。**
 
 [English](README.en.md) · [v0.3.0 发布说明](https://github.com/kaiwuzaidao/kaiwu/releases/tag/v0.3.0) · [产品前端起步仓](https://github.com/kaiwuzaidao/kaiwu-web-starter/tree/v0.3.0) · [AI 协作开发指南](docs/AI-DEVELOPMENT.md) · [10 分钟看懂机制](docs/HOW-IT-WORKS.md)
 
 </div>
 
 > **Kaiwu 解决什么问题？**
-> 企业同时开发多个内部系统（采购、库存、设备预约、订单、审批等）时，常卡在两件事：**产品原型要前端重敲一遍**，以及 **AI 写完跨仓改漏、换人换模型就漂移**。Kaiwu 用 **「产品即前端 + 随仓门禁 + 共享薄底座」** 一次性解决。
+> 企业同时开发多个内部系统（库存、设备预约、订单、审批等）时，常卡在两件事：**产品原型要前端重敲一遍**，以及 **AI 写完跨仓改漏、换人换模型就漂移**。Kaiwu 用 **「产品即前端 + 随仓门禁 + 共享薄底座」** 一次性解决。
 
-| 产品即前端（零重写交接） | 开发可控（换人换模型不漂移） | 薄平台（多应用共享企业底座） |
+| 产品即前端（沿用验收前端） | 开发可控（代码和规则随仓） | 薄平台（多应用共享企业底座） |
 | --- | --- | --- |
 | 产品经理用 AI 在起步仓直接做出带多角色 `/__mock/` 演示的 **React 正式前端**；确认后 `project adopt` 纳管生成后端，同一套页面直接联调上线。 | 每个业务交付为 **独立前后端 Git 仓 + 独立库**，内置 `AGENTS.md`、编号业务规则、`acceptance-scenarios.md` 与 `verify` 门禁，提交前自动抓出漏项。 | 统一网关、单点登录、成员/角色/行级数据范围、受管字典、多语言、对象存储、统一待办与项目助手集中治理，业务代码 100% 独立演进。 |
 
@@ -34,7 +34,7 @@ flowchart LR
     B1 --> B2
   end
 
-  A3 -->|"./kaiwu project adopt --apply\n登记项目并只生成配套后端"| C
+  A3 -->|"./kaiwu project adopt <frontend> --apply\n登记项目并只生成配套后端"| C
   B2 --> C["4. 真实联调与三端门禁\n后端实现 API · 前端 pnpm dev:real\nverify.sh + pnpm verify"]
   C --> D["5. 生产交付\n镜像剥离 Mock（/__mock/ 返回 404）\n独立部署 · 接入同一平台工作台"]
 ```
@@ -47,9 +47,9 @@ flowchart LR
 
 | 对比维度 | Kaiwu + AI 编码工具 | 低代码平台 | 传统后台脚手架 | 单独使用 AI 工具 |
 | --- | --- | --- | --- | --- |
-| **前端如何到上线** | 产品直出正式 React 前端 + Mock 验收，纳管后后端直接接 API 上线，**零重写**；UI 库可换 | 拖拽表单直接发布，但复杂交互与自定义前端受限于平台扩展边界 | 产品画原型，专职前端照图重敲一遍，接口与交互反复对齐 | 很快生成一次性 Demo，但缺少鉴权、权限接入与 Mock 隔离，常需推倒重来 |
+| **前端如何到上线** | 产品直出正式 React 前端 + Mock 验收，纳管后后端直接接 API 上线，沿用已验收页面；UI 库可换 | 拖拽表单直接发布，但复杂交互与自定义前端受限于平台扩展边界 | 产品画原型，专职前端照图重敲一遍，接口与交互反复对齐 | 很快生成一次性 Demo，但缺少鉴权、权限接入与 Mock 隔离，常需推倒重来 |
 | **多系统如何共享** | 新应用接入同一网关，已有员工按项目分配角色与数据范围，工作台自动出现入口 | 同平台应用通常可复用账号与角色体系 | 复制工程后各自一套登录表，跨系统共用账号与待办需自行改造 | 每次都要把登录协议、令牌与权限表结构重新喂给 AI |
-| **规则如何长期可控** | 独立小上下文仓库 + 规则/场景/Mock 绑定 + 权限三端同码门禁，换人换模型不漂移 | 依赖设计器配置，复杂逻辑调试与代码化协作受限 | 复制多个工程后各自修改，公共能力修复靠人工逐仓同步 | 权限一致性、数据库迁移、敏感日志与发布契约全靠团队手工兜底 |
+| **规则如何长期可控** | 独立小上下文仓库 + 规则/场景/Mock 绑定 + 权限三端同码门禁，便于换人或更换工具后接手 | 依赖设计器配置，复杂逻辑调试与代码化协作受限 | 复制多个工程后各自修改，公共能力修复靠人工逐仓同步 | 权限一致性、数据库迁移、敏感日志与发布契约全靠团队手工兜底 |
 
 ---
 
@@ -57,7 +57,7 @@ flowchart LR
 
 ### 产品先出前端演示
 
-> **路线 A（推荐先试）· 无需 Docker、MySQL 或 JDK，只需要 Git、Node 22 和 pnpm 10**，5 分钟在本地跑起带角色切换与规则校验的双人设备预约演示：
+> **路线 A（推荐先试）· 无需 Docker、MySQL 或 JDK，只需要 Git、Node 22 和 pnpm 10**，按以下步骤在本地跑起带角色切换与规则校验的双人设备预约演示：
 
 <details>
 <summary>复制这句话给你的 AI 编码工具（Claude Code / Codex / Cursor 等）直接开工</summary>
@@ -95,7 +95,7 @@ pnpm dev
 
 ### 启动完整平台
 
-> **路线 B（v0.3.0）· 需要 Git、Docker（含 Compose v2）、OpenSSL 和 curl**。本机 MySQL 体验直接拉取 GHCR `amd64 / arm64` 预构建镜像（国内网络可改用 Gitee 镜像 `https://gitee.com/wujm12138/kaiwu.git`）：
+> **路线 B（v0.3.0）· 需要 Git、Docker（含 Compose v2）、OpenSSL 和 curl**。本机 MySQL 体验直接拉取 GHCR `amd64 / arm64` 预构建镜像：
 
 <details>
 <summary>复制这句话给你的 AI 编码工具，自动检查环境并引导生成双仓</summary>
@@ -133,15 +133,20 @@ KAIWU_DB_TYPE=mysql ./kaiwu up
 <details>
 <summary>查看更多真实界面截图（项目管理、权限中心、全局字典、配置移交、模型路由）</summary>
 
-- **项目管理**：内置 `system` 项目与业务项目统一管理入口与生成状态  
+- **项目管理**：内置 `system` 项目与业务项目统一管理入口与生成状态
+
   ![项目管理中的 Kaiwu System 与订单中心](docs/assets/projects.png)
-- **项目权限中心**：菜单树与三段式权限码，与后端 `@RequirePermission` / `kaiwu/menus.yml` 三端同码  
+- **项目权限中心**：菜单树与三段式权限码，与后端 `@RequirePermission` / `kaiwu/menus.yml` 三端同码
+
   ![内置项目权限中心，展示平台菜单、按钮和权限码](docs/assets/permissions.png)
-- **受管字典与数据范围**：业务保存稳定值，前端按语言下发标签  
+- **受管字典与数据范围**：业务保存稳定值，前端按语言下发标签
+
   ![字典管理中显示数据范围类型及其字典值](docs/assets/dictionary.png)
-- **跨环境配置移交**：导出与导入前预览新增、变更、删除和角色授权  
+- **跨环境配置移交**：导出与导入前预览新增、变更、删除和角色授权
+
   ![订单中心的配置移交面板，提供导出、导入预览和移交记录](docs/assets/handover.png)
-- **大模型路由配置**：PLAN 与 ANSWER 阶段模型分离绑定  
+- **大模型路由配置**：PLAN 与 ANSWER 阶段模型分离绑定
+
   ![大模型配置中独立的任务识别模型和回答模型选择器](docs/assets/model-routing.png)
 
 </details>
@@ -166,7 +171,7 @@ KAIWU_DB_TYPE=mysql ./kaiwu up
 
 | 仓库 | 定位 |
 | --- | --- |
-| [kaiwu](https://github.com/kaiwuzaidao/kaiwu) | 统一开源入口与 CLI 编排（[Gitee 镜像](https://gitee.com/wujm12138/kaiwu)） |
+| [kaiwu](https://github.com/kaiwuzaidao/kaiwu) | 统一开源入口与 CLI 编排 |
 | [kaiwu-web-starter](https://github.com/kaiwuzaidao/kaiwu-web-starter/tree/v0.3.0) | 产品前端起步仓（内置 `/__mock/`、规则场景检查与 `@/kaiwu` 无头接入层） |
 | [kaiwu-system-service](https://github.com/kaiwuzaidao/kaiwu-system-service/tree/v0.3.0) | 控制面后端、项目工厂、前端纳管、Flyway 与 Helm Chart |
 | [kaiwu-gateway-service](https://github.com/kaiwuzaidao/kaiwu-gateway-service/tree/v0.3.0) | 统一外部入口、JWT/Redis 会话校验与签名 Context 转发 |

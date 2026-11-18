@@ -9,7 +9,7 @@
 </div>
 
 > **Why Kaiwu?**
-> Teams building multiple internal back-office apps (purchasing, inventory, booking, order workflows) repeatedly hit two walls: **rebuilding product prototypes from scratch in frontend code**, and **AI coding assistants drifting across repositories or skipping permissions and migrations**. Kaiwu solves both with **Product-led Frontends + In-repo Guardrails + a Thin Shared Platform**.
+> Teams building multiple internal back-office apps (inventory, booking, order workflows) repeatedly hit two walls: **rebuilding product prototypes from scratch in frontend code**, and **AI coding assistants drifting across repositories or skipping permissions and migrations**. Kaiwu solves both with **Product-led Frontends + In-repo Guardrails + a Thin Shared Platform**.
 
 | Product-Led Frontend (Zero Rewrite) | Controllable Delivery (Zero Drift) | Thin Platform (Shared Enterprise Core) |
 | --- | --- | --- |
@@ -34,7 +34,7 @@ flowchart LR
     B1 --> B2
   end
 
-  A3 -->|"./kaiwu project adopt --apply\nRegister app & generate backend"| C
+  A3 -->|"./kaiwu project adopt <frontend> --apply\nRegister app & generate backend"| C
   B2 --> C["4. Real integration & gates\nImplement Spring Boot APIs · pnpm dev:real\nverify.sh + pnpm verify"]
   C --> D["5. Production ship\nMocks stripped (/__mock/ returns 404)\nIndependent deploy on shared workbench"]
 ```
@@ -47,7 +47,7 @@ flowchart LR
 
 | Dimension | Kaiwu + AI Coding Agent | Low-Code Platform | Traditional Starter Kits | AI Coding Agent Alone |
 | --- | --- | --- | --- | --- |
-| **Prototype to production** | Product builds the real React frontend with `/__mock/`, adopts via CLI, and engineers wire APIs via `dev:real`—**zero rewrite**; UI library is swappable | Drag-and-drop forms publish quickly, but complex UX and custom frontend reuse hit platform walls | Product draws wireframes; frontend engineers rebuild every screen and realign DTOs | Fast throwaway demos, but missing shared auth, permission wiring, and mock isolation force rewrites |
+| **Prototype to production** | Product builds the real React frontend with `/__mock/`, adopts via CLI, and engineers wire APIs via `dev:real`, reusing the reviewed frontend; UI library is swappable | Drag-and-drop forms publish quickly, but complex UX and custom frontend reuse hit platform walls | Product draws wireframes; frontend engineers rebuild every screen and realign DTOs | Fast throwaway demos, but missing shared auth, permission wiring, and mock isolation force rewrites |
 | **Second app reuse** | Connect the new app to the same Gateway and assign project roles & row scopes to existing staff | Apps inside the same workspace usually share accounts and roles | Each copy duplicates login tables; unifying SSO and task inboxes takes custom rework | Every prompt must re-explain auth APIs, token protocols, and permission tables |
 | **Long-term control** | Small per-app context + linked rules/scenarios/mocks + three-way permission parity checks | Visual config limits code-first review and automated regression tests | Copied repos diverge quickly; shared fixes must be manually ported | Permission parity, migrations, redaction, and release contracts fall on manual discipline |
 
@@ -95,7 +95,7 @@ pnpm dev
 
 ### Run the full platform
 
-> **Path B (v0.3.0) · Requires Git, Docker with Compose v2, OpenSSL, and curl**. Starts local MySQL and pulls prebuilt `amd64 / arm64` images from GHCR (Gitee mirror: `https://gitee.com/wujm12138/kaiwu.git`):
+> **Path B (v0.3.0) · Requires Git, Docker with Compose v2, OpenSSL, and curl**. Starts local MySQL and pulls prebuilt `amd64 / arm64` images from GHCR:
 
 <details>
 <summary>Copy this prompt into a terminal coding agent to boot Kaiwu and scaffold a project</summary>
@@ -133,15 +133,20 @@ Using `order-center` as an example, create it in Project Management or via CLI:
 <details>
 <summary>More platform screens (Projects, Permissions, Dictionaries, Config Handover, Model Routing)</summary>
 
-- **Project Management**: Central registry for built-in `system` and business apps  
+- **Project Management**: Central registry for built-in `system` and business apps
+
   ![Projects list showing Kaiwu System and Order Center](docs/assets/projects.png)
-- **Permission Center**: Menu tree and three-part permission codes matching `@RequirePermission` and `kaiwu/menus.yml`  
+- **Permission Center**: Menu tree and three-part permission codes matching `@RequirePermission` and `kaiwu/menus.yml`
+
   ![Permission center showing platform menus and button codes](docs/assets/permissions.png)
-- **Managed Dictionaries & Data Scopes**: Stable values stored in DB, localized labels served by platform  
+- **Managed Dictionaries & Data Scopes**: Stable values stored in DB, localized labels served by platform
+
   ![Dictionary management showing data scope types](docs/assets/dictionary.png)
-- **Cross-Env Config Handover**: Diff preview for additions, changes, removals, and role grants  
+- **Cross-Env Config Handover**: Diff preview for additions, changes, removals, and role grants
+
   ![Configuration handover export, preview, and audit history](docs/assets/handover.png)
-- **Model Routing**: Independent PLAN and ANSWER model bindings  
+- **Model Routing**: Independent PLAN and ANSWER model bindings
+
   ![Model configuration separating PLAN and ANSWER roles](docs/assets/model-routing.png)
 
 </details>
@@ -166,7 +171,7 @@ Using `order-center` as an example, create it in Project Management or via CLI:
 
 | Repository | Role |
 | --- | --- |
-| [kaiwu](https://github.com/kaiwuzaidao/kaiwu) | Unified open-source entry & CLI orchestration ([Gitee mirror](https://gitee.com/wujm12138/kaiwu)) |
+| [kaiwu](https://github.com/kaiwuzaidao/kaiwu) | Unified open-source entry & CLI orchestration |
 | [kaiwu-web-starter](https://github.com/kaiwuzaidao/kaiwu-web-starter/tree/v0.3.0) | Zero-platform product frontend starter (`/__mock/`, rule/scenario gates, headless `@/kaiwu`) |
 | [kaiwu-system-service](https://github.com/kaiwuzaidao/kaiwu-system-service/tree/v0.3.0) | Control plane backend, Project Factory, frontend adoption, Flyway & Helm Chart |
 | [kaiwu-gateway-service](https://github.com/kaiwuzaidao/kaiwu-gateway-service/tree/v0.3.0) | Single external API gateway, JWT/Redis session validation & signed Context |
